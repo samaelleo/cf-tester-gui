@@ -5,32 +5,9 @@
 
 ---
 
-## 👤 پیام کاربر (User Request #1)
-`	ext
+## 👤 پیام کاربر (User Request)
 /goal میخوام یه برنامه ویندوزی بنویسیم که آی پی های کلاد فلر رو از api شرکت he بگیره طبق آدرس https://bgp.he.net/super-lg/report/api/v1/prefixes/originated/{as_number} و شروع کنه با کانفیگی که میدیم تست کنه آی پی ها رو و وقتی کانفیگی کار کرد آی پی رو در لیستی که در برنامه هست نمایش بده و اون لیست بر اساس تست دامنه connectivity check گوگل مرتب کنه و نمایش بده
-`
 
-### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
-
-The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
-
-<SYSTEM_MESSAGE>
-[Message] timestamp=2026-08-11T08:16:34Z sender=95b81db8-3700-417a-94e8-c8430de1900e/task-28 priority=MESSAGE_PRIORITY_HIGH content=Check if pywebview installation has completed
-</SYSTEM_MESSAGE>
-
-
----
-
-### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
-
-The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
-
-<SYSTEM_MESSAGE>
-[Message] timestamp=2026-08-11T08:17:02Z sender=95b81db8-3700-417a-94e8-c8430de1900e/task-41 priority=MESSAGE_PRIORITY_HIGH content=Wait for pip install pywebview to finish
-</SYSTEM_MESSAGE>
-
-
----
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -47,33 +24,6 @@ The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provide
 5. **امکانات کاربردی**: کپی سریع آی‌پی سالم، ساخت و کپی مستقیم کانفیگ جدید با آی‌پی تمیز، خروجی گرفتن (TXT/CSV/JSON)، تنظیم تعداد تردها/همزمانی (Concurrency)، و رابط کاربری شیک و دارک برای ویندوز (با پشتیبانی از زبان‌های فارسی و انگلیسی).
 
 جزییات فنی کامل در فایل [implementation_plan.md](file:///C:/Users/Samael/.gemini/antigravity-ide/brain/95b81db8-3700-417a-94e8-c8430de1900e/implementation_plan.md) قرار داده شده است. لطفا در صورت تایید دکمه **Proceed** را بزنید تا پیاده‌سازی را آغاز کنیم.
-
-
----
-
-## 👤 پیام کاربر (User Request #2)
-`	ext
-/goal میخوام یه برنامه ویندوزی بنویسیم که آی پی های کلاد فلر رو از api شرکت he بگیره طبق آدرس https://bgp.he.net/super-lg/report/api/v1/prefixes/originated/{as_number} و شروع کنه با کانفیگی که میدیم تست کنه آی پی ها رو و وقتی کانفیگی کار کرد آی پی رو در لیستی که در برنامه هست نمایش بده و اون لیست بر اساس تست دامنه connectivity check گوگل مرتب کنه و نمایش بده
-`
-
-### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
-
-The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
-
-<SYSTEM_MESSAGE>
-[Message] timestamp=2026-08-11T08:16:34Z sender=95b81db8-3700-417a-94e8-c8430de1900e/task-28 priority=MESSAGE_PRIORITY_HIGH content=Check if pywebview installation has completed
-</SYSTEM_MESSAGE>
-
-
----
-
-### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
-
-The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
-
-<SYSTEM_MESSAGE>
-[Message] timestamp=2026-08-11T08:17:02Z sender=95b81db8-3700-417a-94e8-c8430de1900e/task-41 priority=MESSAGE_PRIORITY_HIGH content=Wait for pip install pywebview to finish
-</SYSTEM_MESSAGE>
 
 
 ---
@@ -150,15 +100,9 @@ The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provide
 
 ---
 
-## 👤 پیام کاربر (User Request #3)
-`	ext
+## 👤 پیام کاربر (User Request)
 Continue
-`
 
-## 👤 پیام کاربر (User Request #4)
-`	ext
-Continue
-`
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -212,11 +156,10 @@ chmod +x run_app.sh
 
 ---
 
-## 👤 پیام کاربر (User Request #5)
-`	ext
+## 👤 پیام کاربر (User Request)
 وقتی لینک کانفیگ رو بدم چطوری تست میگیره ؟
 هسته xray رو اضافه کردی ؟
-`
+
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -261,13 +204,11 @@ chmod +x run_app.sh
 
 ---
 
-## 👤 پیام کاربر (User Request #6)
-`	ext
+## 👤 پیام کاربر (User Request)
 ستون وضعیت تست رو بهم توضیح میدی معنی گزینه هاشو
-`
 
-## 👤 پیام کاربر (User Request #7)
-`	ext
+
+## 👤 پیام کاربر (User Request)
 The USER performed the following action:
 Show the contents of file c:\Users\Samael\PycharmProjects\cf tester windows\README.md from lines 1 to 29
 File Path: `file:///c:/Users/Samael/PycharmProjects/cf%20tester%20windows/README.md`
@@ -306,7 +247,7 @@ The following code has been modified to include a line number before every line,
 29:    - **مرحله ۴**: تست واقعی **Google Connectivity Check** (`http://connectivitycheck.gstatic.com/generate_204`) و محاسبه دقیق تاخیر زمانی (Latency).
 
 
-`
+
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -351,12 +292,11 @@ The following code has been modified to include a line number before every line,
 
 ---
 
-## 👤 پیام کاربر (User Request #8)
-`	ext
+## 👤 پیام کاربر (User Request)
 الان یه مشکلی هست 
 کانفیگ رو به این شکل میدم وضعیت های 404 و 403 میاد برام 
 vless://937afff8-7513-4078-a759-b884b6c2d2ef@203.23.106.70:8443?encryption=mlkem768x25519plus.xorpub.0rtt.Hfz68R2EM_t2U26EoytKVZZv3I2kxQApYvNh2LXEASg&security=tls&sni=cf2.persiana.garden&fp=chrome&alpn=h2%2Chttp%2F1.1&insecure=0&allowInsecure=0&type=xhttp&host=cf.persiana.garden&path=api%2Fv1%2Ftelemetry%2Fmetrics&mode=packet-up&extra=%7B%22headers%22%3A%7B%22Accept-Encoding%22%3A%22gzip%2C%2Bdeflate%2C%2Bbr%2C%2Bzstd%22%2C%22Accept-Language%22%3A%22en-US%2Cen%3Bq%3D0.9%22%2C%22Cache-Control%22%3A%22no-cache%22%2C%22Pragma%22%3A%22no-cache%22%2C%22User-Agent%22%3A%22Mozilla%2F5.0%2B%28Windows%2BNT%2B10.0%3B%2BWin64%3B%2Bx64%29%2BAppleWebKit%2F537.36%2B%28KHTML%2C%2Blike%2BGecko%29%2BChrome%2F126.0.0.0%2BSafari%2F537.36%22%7D%2C%22mode%22%3A%22packet-up%22%2C%22xPaddingBytes%22%3A%22100-1000%22%7D#%F0%9F%87%B9%F0%9F%87%B7%20VJ2%20R1%20%7C%20CF%3A203.23.106.70%20%5B108ms%5D
-`
+
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -401,22 +341,10 @@ vless://937afff8-7513-4078-a759-b884b6c2d2ef@203.23.106.70:8443?encryption=mlkem
 
 ---
 
-## 👤 پیام کاربر (User Request #9)
-`	ext
+## 👤 پیام کاربر (User Request)
 میشه تست واقعی رو هم اضافه کنی به تست ها بعد تست اولیه ؟
 همون realdelay test
-`
 
-### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
-
-The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
-
-<SYSTEM_MESSAGE>
-[Message] timestamp=2026-08-11T09:53:01Z sender=95b81db8-3700-417a-94e8-c8430de1900e/task-226 priority=MESSAGE_PRIORITY_HIGH content=Check if Xray-core download finished
-</SYSTEM_MESSAGE>
-
-
----
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -443,10 +371,9 @@ The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provide
 
 ---
 
-## 👤 پیام کاربر (User Request #10)
-`	ext
+## 👤 پیام کاربر (User Request)
 Continue
-`
+
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -474,47 +401,10 @@ Continue
 
 ---
 
-## 👤 پیام کاربر (User Request #11)
-`	ext
+## 👤 پیام کاربر (User Request)
 استایل اشتباه داره بررسی کن و اصلاح کن 
 دکمه ها تو رفته پایین صفحه
-`
 
-### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
-
-The following is a <SYSTEM_MESSAGE> not actually sent by the user. It is provided by the system as important information to pay attention to.
-
-<SYSTEM_MESSAGE>
-[Message] timestamp=2026-08-11T11:17:15Z sender=95b81db8-3700-417a-94e8-c8430de1900e/task-410 priority=MESSAGE_PRIORITY_HIGH content=Task id "95b81db8-3700-417a-94e8-c8430de1900e/task-410" finished with result:
-
-				The command completed successfully.
-				Output:
-				test_export_api (__main__.TestAppServerAPI.test_export_api) ... ok
-test_fetch_prefixes_api (__main__.TestAppServerAPI.test_fetch_prefixes_api) ... ok
-test_index_page (__main__.TestAppServerAPI.test_index_page) ... C:\Users\Samael\AppData\Local\Python\pythoncore-3.14-64\Lib\unittest\case.py:615: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Samael\\PycharmProjects\\cf tester windows\\ui/index.html'>
-  result = method()
-ResourceWarning: Enable tracemalloc to get the object allocation traceback
-ok
-test_parse_config_api (__main__.TestAppServerAPI.test_parse_config_api) ... ok
-test_clean_asn (__main__.TestBGPFetcher.test_clean_asn) ... ok
-test_fetch_prefixes_he (__main__.TestBGPFetcher.test_fetch_prefixes_he) ... ok
-test_generate_candidate_ips (__main__.TestBGPFetcher.test_generate_candidate_ips) ... ok
-test_trojan_parsing (__main__.TestConfigParser.test_trojan_parsing) ... ok
-test_vless_parsing_and_generation (__main__.TestConfigParser.test_vless_parsing_and_generation) ... ok
-test_vmess_parsing_and_generation (__main__.TestConfigParser.test_vmess_parsing_and_generation) ... ok
-test_engine_latency_sorting (__main__.TestTesterEngineAndSorting.test_engine_latency_sorting) ... ok
-
-----------------------------------------------------------------------
-Ran 11 tests in 27.604s
-
-OK
-
-
-Log: file:///C:/Users/Samael/.gemini/antigravity-ide/brain/95b81db8-3700-417a-94e8-c8430de1900e/.system_generated/tasks/task-410.log
-</SYSTEM_MESSAGE>}
-
-
----
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -544,11 +434,10 @@ Log: file:///C:/Users/Samael/.gemini/antigravity-ide/brain/95b81db8-3700-417a-94
 
 ---
 
-## 👤 پیام کاربر (User Request #12)
-`	ext
+## 👤 پیام کاربر (User Request)
 تو حافظه کانفیگی که قبلا بهش میدیم رو ذخیره میکنه برنامه 
 این رو برطرف کن که کانفیگ ذخیره نشه
-`
+
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -572,12 +461,11 @@ Log: file:///C:/Users/Samael/.gemini/antigravity-ide/brain/95b81db8-3700-417a-94
 
 ---
 
-## 👤 پیام کاربر (User Request #13)
-`	ext
+## 👤 پیام کاربر (User Request)
 پروژه در گیت هاب پابلیش شد
 اکشن براش بنویس که بیلد .exe رو بگیره و در ریلیز ها بزاره و نسخه نگاری و تگ رو خودکار بسازه بعد هر بار پوش در گیتهاب
 بیلد .deb و .dmg رو هم داشته باشیم
-`
+
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -618,8 +506,7 @@ Log: file:///C:/Users/Samael/.gemini/antigravity-ide/brain/95b81db8-3700-417a-94
 
 ---
 
-## 👤 پیام کاربر (User Request #14)
-`	ext
+## 👤 پیام کاربر (User Request)
 Run python build.py
   python build.py
   Move-Item -Path "dist/cf-clean-ip-scanner.exe" -Destination "dist/cf-clean-ip-scanner-windows-x64.exe"
@@ -746,10 +633,9 @@ Traceback (most recent call last):
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 1: character maps to <undefined>
 Error: Process completed with exit code 1.
-`
 
-## 👤 پیام کاربر (User Request #15)
-`	ext
+
+## 👤 پیام کاربر (User Request)
 The USER performed the following action:
 Show the contents of file c:\Users\Samael\PycharmProjects\cf tester windows\main.py from lines 1 to 22
 File Path: `file:///c:/Users/Samael/PycharmProjects/cf%20tester%20windows/main.py`
@@ -781,7 +667,7 @@ The following code has been modified to include a line number before every line,
 22: logger = logging.getLogger("cf_scanner")
 
 
-`
+
 
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
@@ -817,7 +703,6 @@ git push
 
 ---
 
-## 👤 پیام کاربر (User Request #16)
-`	ext
+## 👤 پیام کاربر (User Request)
 هیستوری چت رو در مسیر پروژه کامل ذخیره کن
-`
+
