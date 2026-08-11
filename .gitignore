@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# PyInstaller / Packaging
+build/
+dist/
+dist-all/
+deb_dist/
+dmg_staging/
+*.spec
+*.manifest
+
+# OS generated
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Binaries downloaded at runtime
+bin/xray
+bin/xray.exe
+bin/LICENSE
+bin/README.md
+bin/geoip.dat
+bin/geosite.dat
+
+# IDE
+.idea/
+.vscode/
+*.swp

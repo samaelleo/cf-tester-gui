@@ -5,6 +5,18 @@
 
 ---
 
+## 📦 بسته‌های آماده دانلود (GitHub Releases)
+
+با هر پوش جدید در مخزن گیت‌هاب، اکشن گیت‌هاب فایل‌های اجرایی زیر را به صورت خودکار بیلد کرده و در بخش **Releases** قرار می‌دهد:
+
+| سیستم‌عامل | فرمت بسته | نام فایل در Releases |
+| :--- | :--- | :--- |
+| **ویندوز (Windows x64)** | `.exe` و `.zip` | `cf-clean-ip-scanner-windows-x64.exe` |
+| **لینوکس (Linux / Debian / Ubuntu)** | `.deb` و `.tar.gz` | `cf-clean-ip-scanner_1.0.x_amd64.deb` |
+| **مک (macOS Apple Silicon & Intel)** | `.dmg` و `.zip` | `cf-clean-ip-scanner-1.0.x-macos.dmg` |
+
+---
+
 ## 🌟 قابلیت‌ها و ویژگی‌های کلیدی
 
 1. **تست تاخیر واقعی (RealDelay Test با هسته Xray)**:

@@ -25,8 +25,9 @@ from core.config_parser import ConfigParser, ParsedConfig
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = getattr(sys, "_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BIN_DIR = os.path.join(BASE_DIR, "bin")
+USER_BIN_DIR = os.path.join(os.path.expanduser("~"), ".cf_scanner", "bin")
 
 
 def get_free_port() -> int:
@@ -46,16 +47,22 @@ class XrayManager:
     @staticmethod
     def get_xray_path() -> str:
         binary_name = XrayManager.get_xray_binary_name()
+        # 1. Check local/bundled bin directory
         local_path = os.path.join(BIN_DIR, binary_name)
         if os.path.exists(local_path):
             return local_path
 
-        # Check system PATH
+        # 2. Check user app data directory
+        user_path = os.path.join(USER_BIN_DIR, binary_name)
+        if os.path.exists(user_path):
+            return user_path
+
+        # 3. Check system PATH
         system_path = shutil.which(binary_name) or shutil.which("xray")
         if system_path:
             return system_path
 
-        return local_path
+        return user_path if not os.access(BIN_DIR, os.W_OK) else local_path
 
     @staticmethod
     def is_xray_available() -> bool:

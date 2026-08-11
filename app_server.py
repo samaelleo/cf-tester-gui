@@ -27,8 +27,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("app_server")
 
-# Directories
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Directories (PyInstaller frozen & normal dev)
+BASE_DIR = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 UI_DIR = os.path.join(BASE_DIR, "ui")
 
 app = Flask(__name__, static_folder=UI_DIR, template_folder=UI_DIR)
