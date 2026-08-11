@@ -18,6 +18,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PYTHONUTF8: "1"
+
 jobs:
   # =========================================================================
   # 1. Automatic Semantic Versioning & Tag Generation

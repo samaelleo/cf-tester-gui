@@ -8,6 +8,13 @@ import platform
 import subprocess
 import sys
 
+# Ensure UTF-8 output encoding on all terminals/runners
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 
 def main():
     system = platform.system()
@@ -22,7 +29,6 @@ def main():
         "--clean",
         "--name", "cf-clean-ip-scanner",
         "--add-data", f"ui{sep}ui",
-        "--hidden-import", "engineio.async_drivers.threading",
         "--hidden-import", "jinja2",
         "--hidden-import", "werkzeug",
         "--hidden-import", "flask",
@@ -52,10 +58,10 @@ def main():
     print(f"[+] Running: {' '.join(cmd)}")
     res = subprocess.run(cmd)
     if res.returncode != 0:
-        print("[-] Build failed!")
+        print("[-] Build failed with exit code:", res.returncode)
         sys.exit(res.returncode)
 
-    print(f"[✓] Build succeeded for {system}!")
+    print(f"[OK] Build succeeded for {system}!")
 
 
 if __name__ == "__main__":
