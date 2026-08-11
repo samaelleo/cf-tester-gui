@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudflare Clean IP Scanner | اسکنر آی‌پی تمیز کلادفلر</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Vazirmatn:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header glass-card">
+      <div class="header-brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" fill="url(#cf-gradient)"/>
+            <defs>
+              <linearGradient id="cf-gradient" x1="2" y1="5" x2="22" y2="19" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#f97316"/>
+                <stop offset="1" stop-color="#3b82f6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 id="app-title">اسکنر آی‌پی تمیز کلادفلر</h1>
+          <p id="app-subtitle" class="subtitle">Cloudflare Clean IP Scanner (HE BGP & RealDelay)</p>
+        </div>
+      </div>
+
+      <!-- ASN Selector & Action Pills -->
+      <div class="header-actions">
+        <div class="asn-pill-group">
+          <span class="asn-label" id="asn-title">شماره خودگردان (ASN):</span>
+          <button class="asn-btn active" data-asn="13335" id="btn-as13335">AS13335 (اصلی)</button>
+          <button class="asn-btn" data-asn="209242" id="btn-as209242">AS209242 (Inc)</button>
+          <div class="custom-asn-wrap">
+            <input type="text" id="custom-asn-input" placeholder="ASN دلخواه (مثلا 13335)" value="13335">
+            <button id="btn-fetch-bgp" class="btn-icon-fetch" title="دریافت پیشوندها از HE BGP API">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                <path d="M16 21h5v-5"/>
+              </svg>
+              <span id="txt-fetch-bgp">بروزرسانی رنج‌ها</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="header-utils">
+          <span id="bgp-prefix-badge" class="badge badge-info">5,489 پیشوند لود شد</span>
+          <button id="btn-lang-toggle" class="btn-lang" title="Toggle Language (English / فارسی)">
+            <span class="lang-text">EN</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Layout Grid -->
+    <main class="app-main-grid">
+      <!-- Left Column: Unified Configuration & Controls -->
+      <section class="controls-column glass-card">
+        <!-- Section 1: Config Input -->
+        <div class="ctrl-section">
+          <div class="ctrl-section-header">
+            <div class="card-title-wrap">
+              <span class="card-icon">⚡</span>
+              <h2 id="title-config-input">کانفیگ پروکسی / دامنه</h2>
+            </div>
+            <div id="protocol-badge-wrap">
+              <span id="protocol-badge" class="badge badge-protocol">VLESS</span>
+              <span id="tls-badge" class="badge badge-tls">TLS: فعال</span>
+            </div>
+          </div>
+          <textarea id="config-input" class="modern-textarea" placeholder="کانفیگ خود را اینجا پیست کنید (vless://, vmess://, trojan://, ss:// یا دامنه/ورکر)&#10;مثال:&#10;vless://uuid@myworker.example.workers.dev:443?type=ws&security=tls&path=%2F%3Fed%3D2560&host=myworker.example.workers.dev&sni=myworker.example.workers.dev#MyWorker"></textarea>
+
+          <!-- Parsed Metadata Chips -->
+          <div class="parsed-chips-row" id="parsed-chips">
+            <div class="chip"><span class="chip-k" id="lbl-sni">SNI:</span> <span class="chip-v" id="val-sni">auto</span></div>
+            <div class="chip"><span class="chip-k" id="lbl-port">پورت:</span> <span class="chip-v" id="val-port">443</span></div>
+            <div class="chip"><span class="chip-k" id="lbl-transport">نوع:</span> <span class="chip-v" id="val-transport">ws</span></div>
+            <div class="chip"><span class="chip-k" id="lbl-path">مسیر:</span> <span class="chip-v" id="val-path">/</span></div>
+          </div>
+        </div>
+
+        <!-- Section 2: Scan Parameters -->
+        <div class="ctrl-section">
+          <div class="ctrl-section-header">
+            <div class="card-title-wrap">
+              <span class="card-icon">⚙️</span>
+              <h2 id="title-scan-params">تنظیمات اسکن و تست</h2>
+            </div>
+          </div>
+
+          <div class="params-grid">
+            <!-- Sampling Strategy -->
+            <div class="form-group form-group-full">
+              <label id="lbl-sample-mode">استراتژی نمونه‌برداری:</label>
+              <select id="select-sample-mode" class="modern-select">
+                <option value="random" id="opt-random">🎲 نمونه تصادفی در هر پیشوند (پیشنهادی)</option>
+                <option value="gateway_hosts" id="opt-gateway">🎯 آی‌پی‌های لبه (.1, .10, .50, .100, .200)</option>
+                <option value="step" id="opt-step">⚡ گام‌های متوالی در ساب‌نت (Step Stride)</option>
+                <option value="custom" id="opt-custom">📋 لیست دستی آی‌پی‌ها</option>
+              </select>
+            </div>
+
+            <!-- Target URL -->
+            <div class="form-group form-group-full">
+              <label id="lbl-target-url">مقصد تست سلامت و Latency:</label>
+              <select id="select-target-url" class="modern-select">
+                <option value="http://connectivitycheck.gstatic.com/generate_204">🌐 Google 204 (connectivitycheck.gstatic.com)</option>
+                <option value="http://cp.cloudflare.com/generate_204">☁️ Cloudflare 204 (cp.cloudflare.com)</option>
+                <option value="https://www.google.com/generate_204">🔒 Google HTTPS 204 (google.com)</option>
+              </select>
+            </div>
+
+            <!-- IPs per Subnet Slider -->
+            <div class="form-group">
+              <div class="slider-header">
+                <label id="lbl-ips-per-prefix">آی‌پی/پیشوند:</label>
+                <span id="val-ips-per-prefix" class="slider-val">2</span>
+              </div>
+              <input type="range" id="slider-ips-per-prefix" min="1" max="20" value="2" class="modern-range">
+            </div>
+
+            <!-- Max Total IPs -->
+            <div class="form-group">
+              <div class="slider-header">
+                <label id="lbl-max-ips">حداکثر کل:</label>
+                <span id="val-max-ips" class="slider-val">1000</span>
+              </div>
+              <input type="range" id="slider-max-ips" min="100" max="5000" step="100" value="1000" class="modern-range">
+            </div>
+
+            <!-- Concurrency Slider -->
+            <div class="form-group">
+              <div class="slider-header">
+                <label id="lbl-concurrency">همزمانی:</label>
+                <span id="val-concurrency" class="slider-val">60</span>
+              </div>
+              <input type="range" id="slider-concurrency" min="10" max="200" step="5" value="60" class="modern-range">
+            </div>
+
+            <!-- Timeout Slider -->
+            <div class="form-group">
+              <div class="slider-header">
+                <label id="lbl-timeout">مهلت پاسخ:</label>
+                <span id="val-timeout" class="slider-val">2.5s</span>
+              </div>
+              <input type="range" id="slider-timeout" min="1.0" max="5.0" step="0.5" value="2.5" class="modern-range">
+            </div>
+          </div>
+
+          <!-- Custom IPs Area (Hidden unless chosen) -->
+          <div class="form-group custom-ips-wrap hidden" id="custom-ips-container">
+            <label id="lbl-custom-ips-input">لیست آی‌پی‌ها یا ساب‌نت‌های دلخواه:</label>
+            <textarea id="custom-ips-input" class="modern-textarea small-textarea" placeholder="104.16.24.1&#10;172.64.0.0/24&#10;1.1.1.1"></textarea>
+          </div>
+        </div>
+
+        <!-- Section 3: Action Control Buttons -->
+        <div class="action-panel-wrap">
+          <div class="action-row-main">
+            <button id="btn-start" class="btn btn-primary glow-pulse">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <span id="txt-start-scan">شروع اسکن آی‌پی‌ها</span>
+            </button>
+            <button id="btn-realdelay" class="btn btn-cyan" title="تست تاخیر واقعی با هسته Xray روی آی‌پی‌های سالم پیدا شده">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              <span id="txt-realdelay">تست تاخیر واقعی</span>
+            </button>
+          </div>
+          <div class="action-row-sub">
+            <button id="btn-pause" class="btn btn-secondary" disabled>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              <span id="txt-pause-scan">توقف</span>
+            </button>
+            <button id="btn-stop" class="btn btn-danger" disabled>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
+              <span id="txt-stop-scan">لغو</span>
+            </button>
+            <button id="btn-clear" class="btn btn-ghost">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span id="txt-clear-table">پاکسازی</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Stats & Results Table -->
+      <section class="results-column">
+        <!-- Live Metrics Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card glass-card">
+            <div class="metric-icon metric-icon-blue">📊</div>
+            <div class="metric-content">
+              <span class="metric-label" id="lbl-stat-tested">تست شده / کل</span>
+              <div class="metric-val" id="stat-tested">0 / 0</div>
+            </div>
+          </div>
+
+          <div class="metric-card glass-card">
+            <div class="metric-icon metric-icon-green">✨</div>
+            <div class="metric-content">
+              <span class="metric-label" id="lbl-stat-working">آی‌پی سالم</span>
+              <div class="metric-val text-green" id="stat-working">0</div>
+            </div>
+          </div>
+
+          <div class="metric-card glass-card">
+            <div class="metric-icon metric-icon-purple">⚡</div>
+            <div class="metric-content">
+              <span class="metric-label" id="lbl-stat-speed">سرعت اسکن</span>
+              <div class="metric-val" id="stat-speed">0 IP/s</div>
+            </div>
+          </div>
+
+          <div class="metric-card glass-card">
+            <div class="metric-icon metric-icon-amber">🎯</div>
+            <div class="metric-content">
+              <span class="metric-label" id="lbl-stat-ping">بهترین پینگ گوگل</span>
+              <div class="metric-val text-amber" id="stat-best-ping">-- ms</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container glass-card">
+          <div class="progress-info-row">
+            <span id="progress-status-text">آماده شروع اسکن</span>
+            <span id="progress-percentage">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="progress-fill" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Results Table Card -->
+        <div class="card glass-card results-card">
+          <div class="card-header table-header-bar">
+            <div class="table-title-group">
+              <div class="card-title-wrap">
+                <span class="card-icon">📋</span>
+                <h2 id="title-results-table">آی‌پی‌های سالم و مرتب‌شده بر اساس پینگ گوگل (204)</h2>
+              </div>
+              <span id="badge-results-count" class="badge badge-success">0 مورد</span>
+            </div>
+
+            <!-- Search Filter & Export Actions -->
+            <div class="table-actions-group">
+              <div class="search-box-wrap">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" id="search-filter-input" placeholder="فیلتر آی‌پی یا ساب‌نت...">
+              </div>
+
+              <div class="export-dropdown-wrap">
+                <button id="btn-copy-all-ips" class="btn btn-sm btn-outline" title="کپی تمامی آی‌پی‌های سالم">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span id="txt-copy-all">کپی آی‌پی‌ها</span>
+                </button>
+
+                <button id="btn-export-dropdown" class="btn btn-sm btn-outline">
+                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span id="txt-export">خروجی</span>
+                </button>
+                <div class="export-menu hidden" id="export-menu">
+                  <button class="export-opt" data-fmt="ips" id="exp-ips">📄 لیست آی‌پی‌ها (TXT)</button>
+                  <button class="export-opt" data-fmt="links" id="exp-configs">🔗 لینک‌های آماده کانفیگ (TXT)</button>
+                  <button class="export-opt" data-fmt="csv" id="exp-csv">📊 جدول اکسل (CSV)</button>
+                  <button class="export-opt" data-fmt="json" id="exp-json">💾 ساختار کامل (JSON)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="table-responsive">
+            <table class="modern-table" id="results-table">
+              <thead>
+                <tr>
+                  <th class="th-rank">#</th>
+                  <th id="th-ip">آدرس آی‌پی</th>
+                  <th id="th-prefix">پیشوند / CIDR</th>
+                  <th id="th-realdelay" class="th-realdelay">تاخیر واقعی (RealDelay)</th>
+                  <th id="th-google" class="th-sortable active-sort">پینگ گوگل (204) ↓</th>
+                  <th id="th-tcp">TCP Latency</th>
+                  <th id="th-tls">TLS Handshake</th>
+                  <th id="th-status">وضعیت تست</th>
+                  <th id="th-actions" class="th-actions">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="results-tbody">
+                <tr class="empty-row" id="empty-row">
+                  <td colspan="9">
+                    <div class="empty-state">
+                      <div class="empty-icon">🔍</div>
+                      <h3 id="txt-no-results">هنوز اسکن شروع نشده است</h3>
+                      <p id="txt-no-results-desc">کانفیگ خود را وارد کرده و دکمه «شروع اسکن آی‌پی‌ها» را بزنید.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
