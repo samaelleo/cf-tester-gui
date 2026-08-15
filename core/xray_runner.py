@@ -171,15 +171,33 @@ class XrayManager:
 
         # Transport specific settings
         if network == "xhttp":
-            stream_settings["xhttpSettings"] = {
+            xhttp_obj: Dict[str, Any] = {
                 "path": raw_path,
                 "host": host,
                 "mode": parsed.mode or "packet-up"
             }
+            if parsed.extra and isinstance(parsed.extra, dict):
+                for k, v in parsed.extra.items():
+                    if k == "headers" and isinstance(v, dict):
+                        cleaned_headers = {}
+                        for hk, hv in v.items():
+                            if isinstance(hv, str):
+                                cleaned_headers[hk] = urllib.parse.unquote_plus(hv)
+                            else:
+                                cleaned_headers[hk] = hv
+                        xhttp_obj["headers"] = cleaned_headers
+                    else:
+                        xhttp_obj[k] = v
+            stream_settings["xhttpSettings"] = xhttp_obj
         elif network == "ws":
+            ws_headers: Dict[str, str] = {"Host": host}
+            if parsed.extra and isinstance(parsed.extra, dict) and "headers" in parsed.extra:
+                if isinstance(parsed.extra["headers"], dict):
+                    for hk, hv in parsed.extra["headers"].items():
+                        ws_headers[hk] = urllib.parse.unquote_plus(hv) if isinstance(hv, str) else str(hv)
             stream_settings["wsSettings"] = {
                 "path": raw_path,
-                "headers": {"Host": host}
+                "headers": ws_headers
             }
         elif network == "grpc":
             stream_settings["grpcSettings"] = {
@@ -298,7 +316,8 @@ class XrayTester:
             inbound_http_port=p_http
         )
 
-        tmp_cfg_path = os.path.join(BIN_DIR, f"temp_{p_http}.json")
+        tmp_dir = BIN_DIR if os.path.exists(BIN_DIR) and os.access(BIN_DIR, os.W_OK) else os.path.expanduser("~")
+        tmp_cfg_path = os.path.join(tmp_dir, f"xray_tmp_{p_http}_{int(time.time()*1000)%100000}.json")
         with open(tmp_cfg_path, "w", encoding="utf-8") as f:
             json.dump(config_dict, f)
 
@@ -344,12 +363,17 @@ class XrayTester:
             if proc:
                 try:
                     proc.terminate()
-                    proc.wait(timeout=0.8)
+                    proc.wait(timeout=0.6)
                 except Exception:
                     try:
                         proc.kill()
                     except Exception:
                         pass
+            if os.path.exists(tmp_cfg_path):
+                try:
+                    os.remove(tmp_cfg_path)
+                except Exception:
+                    pass
             if os.path.exists(tmp_cfg_path):
                 try:
                     os.remove(tmp_cfg_path)

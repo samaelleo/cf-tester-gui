@@ -441,8 +441,8 @@ function handleServerEvent(msg) {
   } else if (event === 'realdelay_result') {
     const existing = state.workingResults.find(r => r.ip === data.ip);
     if (existing) {
-      existing.real_delay_ms = data.realdelay_ms;
-      if (data.real_status && data.real_status.includes('OK')) {
+      existing.real_delay_ms = data.realdelay_ms || 0;
+      if (data.real_status && (data.real_status.includes('OK') || data.realdelay_ms > 0)) {
         existing.google_status = data.real_status;
       }
       renderTable();
@@ -450,12 +450,17 @@ function handleServerEvent(msg) {
   } else if (event === 'realdelay_finished') {
     showToast(i18n[state.lang].realdelayDone, 'success');
     el.progressStatusText.innerText = i18n[state.lang].realdelayDone;
-    // Re-sort by RealDelay
+    // Re-sort by RealDelay (lowest positive first)
     state.workingResults.sort((a, b) => {
       const dA = a.real_delay_ms > 0 ? a.real_delay_ms : 99999;
       const dB = b.real_delay_ms > 0 ? b.real_delay_ms : 99999;
       return dA - dB;
     });
+    // Update best ping stat if real delay exists
+    const validDelays = state.workingResults.filter(r => r.real_delay_ms > 0);
+    if (validDelays.length > 0) {
+      el.statBestPing.innerText = `${validDelays[0].real_delay_ms.toFixed(0)} ms`;
+    }
     renderTable();
   } else if (event === 'progress') {
     state.testedCount = data.tested || 0;
@@ -729,8 +734,8 @@ function setupEvents() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           config: rawConfig,
-          concurrency: 10,
-          timeout_sec: 4.0
+          concurrency: 5,
+          timeout_sec: 5.0
         })
       });
       const data = await res.json();

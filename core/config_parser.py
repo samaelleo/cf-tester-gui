@@ -37,6 +37,7 @@ class ParsedConfig:
     mode: str = ""           # packet-up, etc. (for xhttp)
     tag: str = "Cloudflare-Config"
     raw_link: str = ""
+    extra: Dict[str, Any] = field(default_factory=dict)
     extra_params: Dict[str, Any] = field(default_factory=dict)
 
     def get_sni_or_host(self) -> str:
@@ -107,6 +108,20 @@ class ConfigParser:
             encryption = q.get("encryption", "none")
             mode = q.get("mode", "")
 
+            # Extract extra json if provided
+            extra_dict = {}
+            if "extra" in q:
+                try:
+                    extra_val = q["extra"]
+                    if isinstance(extra_val, str):
+                        # Decode potential URL encoding
+                        unquoted = urllib.parse.unquote_plus(extra_val)
+                        extra_dict = json.loads(unquoted)
+                    elif isinstance(extra_val, dict):
+                        extra_dict = extra_val
+                except Exception as e:
+                    logger.debug(f"Could not parse extra JSON: {e}")
+
             # If sni or host is empty, fallback to address if address is a domain name
             if not sni and not ConfigParser._is_ip(address):
                 sni = address
@@ -130,6 +145,7 @@ class ConfigParser:
                 mode=mode,
                 tag=tag,
                 raw_link=link,
+                extra=extra_dict,
                 extra_params=q,
             )
         except Exception as e:
