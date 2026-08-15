@@ -165,6 +165,9 @@ class TesterEngine:
         """
         Runs the async test over all candidate IPs with given concurrency.
         """
+        if config is None:
+            config = ConfigParser.parse("cp.cloudflare.com:443")
+
         self.is_running = True
         self.is_paused = False
         self._cancel_requested = False
@@ -288,6 +291,9 @@ class TesterEngine:
         """
         Runs RealDelay proxy test through Xray-core for all passed working clean IPs.
         """
+        if config is None:
+            config = ConfigParser.parse("cp.cloudflare.com:443")
+
         from core.xray_runner import XrayTester
 
         self._emit("realdelay_started", {"total": len(working_ips), "target_url": target_url})

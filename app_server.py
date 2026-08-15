@@ -174,7 +174,7 @@ def start_scan():
             async_loop.run_until_complete(
                 tester_engine.run_scan(
                     candidate_ips=candidate_ips,
-                    config=current_parsed_config,
+                    config=scan_config,
                     concurrency=concurrency,
                     timeout_sec=timeout_sec,
                     test_target_url=test_target_url
