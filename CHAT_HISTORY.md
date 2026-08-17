@@ -247,8 +247,6 @@ The following code has been modified to include a line number before every line,
 29:    - **مرحله ۴**: تست واقعی **Google Connectivity Check** (`http://connectivitycheck.gstatic.com/generate_204`) و محاسبه دقیق تاخیر زمانی (Latency).
 
 
-
-
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
 در جدول نتایج، ستون **«وضعیت تست» (Test Status)** نوع و سطح پاسخی که از لبه کلادفلر و دامنه گوگل دریافت شده را نشان می‌دهد.
@@ -667,8 +665,6 @@ The following code has been modified to include a line number before every line,
 22: logger = logging.getLogger("cf_scanner")
 
 
-
-
 ### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
 
 علت خطای لاگ گیت‌هاب مشخص شد و برطرف گردید:
@@ -884,4 +880,40 @@ AttributeError: 'NoneType' object has no attribute 'get_sni_or_host'
 
 ## 👤 پیام کاربر (User Request)
 مشکلی الان هست وقتی که دکمه real delay تست رو میزنم نوتیف میاد که تست کرده ولی نتیجه تستی رو نمایش نمیده ، انگار انجام نمیده
+
+
+### 🤖 پاسخ دستیار هوش مصنوعی (AI Assistant Response)
+
+علت ثبت نشدن تاخیر واقعی در جدول شناسایی و به طور کامل برطرف شد:
+
+---
+
+### 🔍 ریشه‌یابی و علت مشکل:
+1. **عدم انتقال پارامترهای پیشرفته `extra` به هسته Xray**:
+   - کانفیگ‌های نوین VLESS دارای پارامتر `extra` حاوی هدرهای اختصاصی مرورگر (`headers: {Accept-Encoding, User-Agent, ...}`) و پدینگ (`xPaddingBytes: 100-1000`) بر بستر **XHTTP / SplitHTTP** هستند.
+   - هسته Xray هنگام اجرای اتصال پروکسی بدون این هدرها با خطای عدم تطابق مواجه می‌شد و در نتیجه پکت‌های تست گوگل تایم‌اوت می‌شدند و مقداری در ستون ثبت نمی‌شد.
+2. **بهبود دریافت رویدادها در فرانت‌اند (`ui/app.js`)**:
+   - پردازش رویدادهای زنده `realdelay_result` و `realdelay_finished` به‌روزرسانی شد تا به محض دریافت پاسخ موفق از هسته Xray، زمان تاخیر واقعی (بر حسب میلی‌ثانیه) در ستون **«تاخیر واقعی (RealDelay)»** درج شده و جدول مرتب‌سازی شود.
+
+---
+
+### 🛠️ تغییرات انجام‌شده:
+1. **پارس کامل پارامترهای `extra` در [`core/config_parser.py`](file:///c:/Users/Samael/PycharmProjects/cf%20tester%20windows/core/config_parser.py)**:
+   - افزودن دیکشنری `extra` به ساختار `ParsedConfig` و رمزگشایی خودکار رشته‌های JSON داخل لینک کانفیگ.
+2. **تزریق هدرها و تنظیمات XHTTP در [`core/xray_runner.py`](file:///c:/Users/Samael/PycharmProjects/cf%20tester%20windows/core/xray_runner.py)**:
+   - تنظیمات کامل `headers`، `xPaddingBytes` و `mode` در بخش `xhttpSettings` کانفیگ خروجی Xray قرار گرفت. (تست عملی روی آی‌پی با موفقیت انجام شد: `204 RealDelay OK - 843ms`).
+3. **پاکسازی فایل‌های موقت کانفیگ**:
+   - تمامی فایل‌های موقت تولید شده توسط Xray در بلاک `finally` به صورت خودکار حذف می‌شوند.
+4. **بهینه‌سازی همزمانی و مهلت زمانی RealDelay در [`ui/app.js`](file:///c:/Users/Samael/PycharmProjects/cf%20tester%20windows/ui/app.js)**:
+   - مهلت زمانی تست واقعی به ۵ ثانیه افزایش یافت تا پکت‌های رمزنگاری شده `mlkem768` با نهایت دقت ثبت شوند.
+
+---
+
+هم‌اکنون کافی است در مرورگر خود صفحه `http://127.0.0.1:58282` را با کلید **F5** رفرش کنید و پس از شروع اسکن، دکمه **«⚡ تست تاخیر واقعی (RealDelay)»** را بزنید تا میلی‌ثانیه واقعی اتصال پروکسی در ستون اختصاصی جدول نمایش داده شود.
+
+
+---
+
+## 👤 پیام کاربر (User Request)
+هیستوری چت که در پروژه هست رو بروز کن
 
