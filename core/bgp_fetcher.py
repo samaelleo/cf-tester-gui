@@ -4,12 +4,14 @@ Fetches originated IP prefixes from:
 https://bgp.he.net/super-lg/report/api/v1/prefixes/originated/{as_number}
 """
 
+from __future__ import annotations
+
 import ipaddress
 import json
 import logging
 import random
 import urllib.request
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 

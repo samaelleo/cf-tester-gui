@@ -7,6 +7,8 @@ Executes multi-stage testing:
 - Stage 4: HTTP 204 No Content / Google Connectivity Status
 """
 
+from __future__ import annotations
+
 import asyncio
 import base64
 import logging

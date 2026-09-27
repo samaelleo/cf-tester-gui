@@ -2,6 +2,8 @@
 Local Flask Application Server & SSE Event Streaming for Cloudflare Clean IP Scanner
 """
 
+from __future__ import annotations
+
 import asyncio
 import csv
 import io

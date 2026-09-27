@@ -6,6 +6,8 @@ Handles:
 - Running high-concurrency RealDelay testing through Xray proxy inbounds
 """
 
+from __future__ import annotations
+
 import asyncio
 import base64
 import json
