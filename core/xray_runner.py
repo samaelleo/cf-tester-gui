@@ -7,6 +7,7 @@ Handles:
 """
 
 import asyncio
+import base64
 import json
 import logging
 import os
@@ -120,6 +121,54 @@ class XrayManager:
         except Exception as e:
             logger.error(f"Failed to download Xray-core: {e}")
             return False, str(e)
+
+    @staticmethod
+    def _parse_ss_credentials(uuid_str: str) -> Tuple[str, str]:
+        """
+        Extracts (method, password) from Shadowsocks userinfo.
+        Supports:
+        - Plain 'method:password'
+        - Base64 encoded SIP002 'base64(method:password)' (standard or urlsafe, with/without padding)
+        - Legacy format 'base64(method:password@host:port)' or plain 'method:password@host:port'
+        - Fallback default cipher if method is omitted
+        """
+        raw = (uuid_str or "").strip()
+        if not raw:
+            return "aes-256-gcm", ""
+
+        # 1. If no colon in raw, attempt Base64 decode (SIP002 or legacy Base64)
+        if ":" not in raw:
+            try:
+                b64_clean = raw
+                pad = len(b64_clean) % 4
+                if pad:
+                    b64_clean += "=" * (4 - pad)
+                decoded_bytes = base64.urlsafe_b64decode(b64_clean.encode("utf-8"))
+                decoded_str = decoded_bytes.decode("utf-8", errors="ignore")
+                if "@" in decoded_str:
+                    user_part, hp = decoded_str.rsplit("@", 1)
+                    if ":" in hp and hp.rsplit(":", 1)[1].isdigit():
+                        decoded_str = user_part
+                if ":" in decoded_str:
+                    method, password = decoded_str.split(":", 1)
+                    return method.strip(), password.strip()
+            except Exception:
+                pass
+
+        # 2. Check if legacy method:password@host:port format
+        target = raw
+        if "@" in target:
+            user_part, hp = target.rsplit("@", 1)
+            if ":" in hp and hp.rsplit(":", 1)[1].isdigit():
+                target = user_part
+
+        # 3. Split plain method:password
+        if ":" in target:
+            method, password = target.split(":", 1)
+            return method.strip(), password.strip()
+
+        # 4. Fallback: treat raw as password with standard cipher
+        return "aes-256-gcm", raw
 
     @staticmethod
     def generate_xray_config(
@@ -245,6 +294,17 @@ class XrayManager:
                     "password": parsed.uuid
                 }]
             }
+        elif parsed.protocol in ["ss", "shadowsocks"]:
+            method, password = XrayManager._parse_ss_credentials(parsed.uuid)
+            outbound_settings = {
+                "servers": [{
+                    "address": clean_ip,
+                    "port": parsed.port,
+                    "method": method,
+                    "password": password,
+                    "ota": False
+                }]
+            }
         else:
             outbound_settings = {
                 "vnext": [{
@@ -253,6 +313,10 @@ class XrayManager:
                     "users": [{"id": parsed.uuid or "11111111-2222-3333-4444-555555555555", "encryption": "none"}]
                 }]
             }
+
+        proto = "shadowsocks" if parsed.protocol in ["ss", "shadowsocks"] else (
+            parsed.protocol if parsed.protocol in ["vless", "vmess", "trojan"] else "vless"
+        )
 
         config = {
             "log": {"loglevel": "warning"},
@@ -275,7 +339,7 @@ class XrayManager:
             "outbounds": [
                 {
                     "tag": "proxy",
-                    "protocol": parsed.protocol if parsed.protocol in ["vless", "vmess", "trojan"] else "vless",
+                    "protocol": proto,
                     "settings": outbound_settings,
                     "streamSettings": stream_settings
                 },
@@ -287,6 +351,162 @@ class XrayManager:
             ]
         }
         return config
+
+    @staticmethod
+    def generate_batch_xray_config(
+        parsed: ParsedConfig,
+        clean_ips: List[str],
+        inbound_http_ports: List[int]
+    ) -> Dict[str, Any]:
+        """
+        Generates an Xray client JSON configuration for testing multiple clean IPs
+        concurrently within a single Xray-core process.
+        Uses 1:1 mapping between inbound HTTP ports and outbound proxy destinations.
+        """
+        sni = parsed.get_sni_or_host()
+        host = parsed.get_host_header()
+        raw_path = parsed.path or "/"
+        if not raw_path.startswith("/"):
+            raw_path = "/" + raw_path
+
+        transport = parsed.transport.lower()
+        if transport in ["xhttp", "splithttp"]:
+            network = "xhttp"
+        elif transport in ["grpc", "ws", "httpupgrade", "tcp"]:
+            network = transport
+        else:
+            network = "ws"
+
+        stream_settings: Dict[str, Any] = {
+            "network": network,
+            "security": parsed.security if parsed.security in ["tls", "reality"] else "none",
+        }
+
+        if parsed.security in ["tls", "reality"]:
+            tls_settings: Dict[str, Any] = {"serverName": sni}
+            if parsed.alpn:
+                alpn_list = [a.strip() for a in parsed.alpn.split(",") if a.strip()]
+                tls_settings["alpn"] = alpn_list if alpn_list else ["h2", "http/1.1"]
+            else:
+                tls_settings["alpn"] = ["h2", "http/1.1"]
+            if parsed.fingerprint:
+                tls_settings["fingerprint"] = parsed.fingerprint
+            if parsed.security == "reality":
+                stream_settings["realitySettings"] = tls_settings
+            else:
+                stream_settings["tlsSettings"] = tls_settings
+
+        if network == "ws":
+            ws_headers: Dict[str, str] = {"Host": host}
+            if parsed.extra and isinstance(parsed.extra, dict) and "headers" in parsed.extra:
+                if isinstance(parsed.extra["headers"], dict):
+                    for hk, hv in parsed.extra["headers"].items():
+                        ws_headers[hk] = urllib.parse.unquote_plus(hv) if isinstance(hv, str) else str(hv)
+            stream_settings["wsSettings"] = {"path": raw_path, "headers": ws_headers}
+        elif network == "grpc":
+            stream_settings["grpcSettings"] = {
+                "serviceName": raw_path.lstrip("/")
+            }
+        elif network == "httpupgrade":
+            stream_settings["httpupgradeSettings"] = {
+                "path": raw_path,
+                "host": host
+            }
+        elif network == "xhttp":
+            xhttp_headers: Dict[str, str] = {"Host": host}
+            if parsed.extra and isinstance(parsed.extra, dict) and "headers" in parsed.extra:
+                if isinstance(parsed.extra["headers"], dict):
+                    for hk, hv in parsed.extra["headers"].items():
+                        xhttp_headers[hk] = urllib.parse.unquote_plus(hv) if isinstance(hv, str) else str(hv)
+            stream_settings["xhttpSettings"] = {
+                "path": raw_path,
+                "host": host,
+                "mode": parsed.mode or "auto",
+                "headers": xhttp_headers
+            }
+
+        encryption_val = parsed.encryption if parsed.encryption and parsed.encryption != "none" else "none"
+        proto = "shadowsocks" if parsed.protocol in ["ss", "shadowsocks"] else (
+            parsed.protocol if parsed.protocol in ["vless", "vmess", "trojan"] else "vless"
+        )
+        if proto == "shadowsocks":
+            ss_method, ss_password = XrayManager._parse_ss_credentials(parsed.uuid)
+
+        inbounds: List[Dict[str, Any]] = []
+        outbounds: List[Dict[str, Any]] = []
+        rules: List[Dict[str, Any]] = []
+
+        for i, (clean_ip, port) in enumerate(zip(clean_ips, inbound_http_ports)):
+            in_tag = f"http-in-{i}"
+            out_tag = f"proxy-{i}"
+
+            inbounds.append({
+                "tag": in_tag,
+                "port": port,
+                "listen": "127.0.0.1",
+                "protocol": "http",
+                "settings": {"allowTransparent": False}
+            })
+
+            if proto == "vless":
+                out_settings = {
+                    "vnext": [{
+                        "address": clean_ip,
+                        "port": parsed.port,
+                        "users": [{"id": parsed.uuid, "encryption": encryption_val, "flow": parsed.flow or ""}]
+                    }]
+                }
+            elif proto == "vmess":
+                out_settings = {
+                    "vnext": [{
+                        "address": clean_ip,
+                        "port": parsed.port,
+                        "users": [{"id": parsed.uuid, "alterId": 0, "security": "auto"}]
+                    }]
+                }
+            elif proto == "trojan":
+                out_settings = {
+                    "servers": [{
+                        "address": clean_ip,
+                        "port": parsed.port,
+                        "password": parsed.uuid
+                    }]
+                }
+            elif proto == "shadowsocks":
+                out_settings = {
+                    "servers": [{
+                        "address": clean_ip,
+                        "port": parsed.port,
+                        "method": ss_method,
+                        "password": ss_password,
+                        "ota": False
+                    }]
+                }
+            else:
+                out_settings = {
+                    "vnext": [{"address": clean_ip, "port": parsed.port, "users": [{"id": parsed.uuid or "11111111-2222-3333-4444-555555555555", "encryption": "none"}]}]
+                }
+
+            outbounds.append({
+                "tag": out_tag,
+                "protocol": proto,
+                "settings": out_settings,
+                "streamSettings": stream_settings
+            })
+            rules.append({
+                "type": "field",
+                "inboundTag": [in_tag],
+                "outboundTag": out_tag
+            })
+
+        outbounds.append({"tag": "direct", "protocol": "freedom", "settings": {}})
+
+        return {
+            "log": {"loglevel": "warning"},
+            "inbounds": inbounds,
+            "outbounds": outbounds,
+            "routing": {"domainStrategy": "AsIs", "rules": rules}
+        }
 
 
 class XrayTester:
@@ -329,8 +549,21 @@ class XrayTester:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
-            # Give Xray time to initialize and bind
-            await asyncio.sleep(0.4)
+            # Dynamic TCP port readiness check (replaces blind 400ms sleep, detects in ~20-50ms)
+            t_ready_start = time.perf_counter()
+            is_bound = False
+            while (time.perf_counter() - t_ready_start) < 1.5:
+                try:
+                    r, w = await asyncio.open_connection("127.0.0.1", p_http)
+                    w.close()
+                    await w.wait_closed()
+                    is_bound = True
+                    break
+                except Exception:
+                    await asyncio.sleep(0.02)
+
+            if not is_bound:
+                return {"status": "FAILED", "realdelay_ms": 0, "error": "Xray inbound port failed to bind within timeout"}
 
             # Test proxy request
             import urllib.request
@@ -374,8 +607,134 @@ class XrayTester:
                     os.remove(tmp_cfg_path)
                 except Exception:
                     pass
-            if os.path.exists(tmp_cfg_path):
+
+    @staticmethod
+    async def test_batch_realdelay(
+        parsed: ParsedConfig,
+        clean_ips: List[str],
+        timeout_sec: float = 3.5,
+        target_url: str = "http://connectivitycheck.gstatic.com/generate_204",
+        on_result: Optional[Callable[[str, Dict[str, Any]], None]] = None
+    ) -> Dict[str, Dict[str, Any]]:
+        """
+        Executes RealDelay tests for multiple clean IPs concurrently using a single
+        Xray-core process with multi-inbound routing, drastically reducing process
+        creation overhead and memory consumption.
+        """
+        if not clean_ips:
+            return {}
+
+        xray_bin = XrayManager.get_xray_path()
+        if not os.path.exists(xray_bin):
+            err_res = {"status": "ERROR", "realdelay_ms": 0, "error": "Xray binary not found"}
+            return {ip: err_res for ip in clean_ips}
+
+        # Allocate unique free ports for each clean IP inbound
+        ports: List[int] = []
+        sockets: List[socket.socket] = []
+        for _ in clean_ips:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(("127.0.0.1", 0))
+            ports.append(s.getsockname()[1])
+            sockets.append(s)
+        for s in sockets:
+            s.close()
+
+        config_dict = XrayManager.generate_batch_xray_config(
+            parsed=parsed,
+            clean_ips=clean_ips,
+            inbound_http_ports=ports
+        )
+
+        tmp_dir = BIN_DIR if os.path.exists(BIN_DIR) and os.access(BIN_DIR, os.W_OK) else os.path.expanduser("~")
+        tmp_cfg_path = os.path.join(tmp_dir, f"xray_batch_{ports[0]}_{int(time.time()*1000)%100000}.json")
+        with open(tmp_cfg_path, "w", encoding="utf-8") as f:
+            json.dump(config_dict, f)
+
+        proc = None
+        results: Dict[str, Dict[str, Any]] = {}
+        try:
+            proc = subprocess.Popen(
+                [xray_bin, "run", "-c", tmp_cfg_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+
+            # Fast active poll until first inbound port is accepting connections
+            t_ready_start = time.perf_counter()
+            is_bound = False
+            while (time.perf_counter() - t_ready_start) < 2.0:
                 try:
-                    os.remove(tmp_cfg_path)
+                    r, w = await asyncio.open_connection("127.0.0.1", ports[0])
+                    w.close()
+                    await w.wait_closed()
+                    is_bound = True
+                    break
                 except Exception:
-                    pass
+                    await asyncio.sleep(0.02)
+
+            if not is_bound:
+                for ip in clean_ips:
+                    results[ip] = {"status": "FAILED", "realdelay_ms": 0, "error": "Batch inbounds failed to bind"}
+                return results
+
+            # Probe all inbounds in parallel
+            loop = asyncio.get_running_loop()
+            import urllib.request
+
+            async def probe_single_ip(clean_ip: str, port: int):
+                proxy_handler = urllib.request.ProxyHandler({
+                    "http": f"http://127.0.0.1:{port}",
+                    "https": f"http://127.0.0.1:{port}",
+                })
+                opener = urllib.request.build_opener(proxy_handler)
+                req = urllib.request.Request(target_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+
+                def fetch():
+                    t0 = time.perf_counter()
+                    try:
+                        with opener.open(req, timeout=timeout_sec) as resp:
+                            delay = (time.perf_counter() - t0) * 1000
+                            return resp.status, delay, None
+                    except Exception as e:
+                        return 0, 0, str(e)
+
+                status_code, delay_ms, err = await loop.run_in_executor(None, fetch)
+                res_dict = {
+                    "status": "SUCCESS" if status_code in [200, 204] else "FAILED",
+                    "realdelay_ms": round(delay_ms, 1),
+                    "http_code": status_code,
+                    "real_status": f"{status_code} RealDelay OK" if status_code in [200, 204] else (f"HTTP {status_code}" if status_code > 0 else f"Err: {err}"),
+                    "error": err
+                }
+                results[clean_ip] = res_dict
+                if on_result:
+                    try:
+                        on_result(clean_ip, res_dict)
+                    except Exception:
+                        pass
+
+            tasks = [probe_single_ip(ip, port) for ip, port in zip(clean_ips, ports)]
+            await asyncio.gather(*tasks, return_exceptions=True)
+            return results
+
+        except Exception as e:
+            for ip in clean_ips:
+                if ip not in results:
+                    results[ip] = {"status": "FAILED", "realdelay_ms": 0, "error": str(e)}
+            return results
+        finally:
+            if proc:
+                try:
+                    proc.terminate()
+                    proc.wait(timeout=0.6)
+                except Exception:
+                    try:
+                        proc.kill()
+                    except Exception:
+                        pass
+            try:
+                if os.path.isfile(tmp_cfg_path):
+                    os.unlink(tmp_cfg_path)
+            except Exception:
+                pass

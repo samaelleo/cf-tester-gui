@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App & Branding -->
+    <string name="app_name">cf-tester</string>
+    <string name="scan_title">Cloudflare Clean IP Scanner</string>
+    <string name="app_subtitle">Cloudflare Clean IP Scanner (HE BGP &amp; RealDelay)</string>
+    <string name="switch_language">English / فارسی</string>
+    <string name="theme_toggle">Toggle Theme</string>
+
+    <!-- Header & ASN Selection -->
+    <string name="asn_title">Autonomous System (ASN):</string>
+    <string name="btn_as13335">AS13335 (Main)</string>
+    <string name="btn_as209242">AS209242 (Inc)</string>
+    <string name="custom_asn_placeholder">Custom ASN (e.g. 13335)</string>
+    <string name="fetch_bgp">Refresh Prefixes</string>
+    <string name="bgp_prefix_badge">%1$d prefixes loaded</string>
+    <string name="bgp_fetching">Fetching BGP prefixes…</string>
+
+    <!-- Config Input Section -->
+    <string name="config_input_title">Proxy Configuration / Domain</string>
+    <string name="config_placeholder">Paste proxy link here (vless://, vmess://, trojan://, ss:// or domain)…\nExample:\nvless://uuid@myworker.workers.dev:443?type=ws&amp;security=tls&amp;path=%2F#Worker</string>
+    <string name="protocol_badge">Protocol: %1$s</string>
+    <string name="tls_badge_on">TLS: Enabled</string>
+    <string name="tls_badge_off">TLS: Disabled</string>
+    <string name="lbl_sni">SNI / Domain:</string>
+    <string name="lbl_port">Port:</string>
+    <string name="lbl_transport">Transport:</string>
+    <string name="lbl_path">Path:</string>
+
+    <!-- Scan Parameters -->
+    <string name="scan_params_title">Scan &amp; Latency Settings</string>
+    <string name="lbl_ip_version">IP Protocol Version (IPv4 / IPv6):</string>
+    <string name="opt_ver_ipv4">IPv4</string>
+    <string name="opt_ver_ipv6">IPv6</string>
+    <string name="opt_ver_both">Both (Dual-Stack)</string>
+    <string name="lbl_sample_mode">Subnet Sampling Strategy:</string>
+    <string name="opt_random">🎲 Random IPs per Prefix (Recommended)</string>
+    <string name="opt_gateway">🎯 Edge Gateway IPs (.1, .10, .50, .100, .200)</string>
+    <string name="opt_step">⚡ Equal Step Stride per Subnet</string>
+    <string name="opt_custom">📋 Custom Manual IP List</string>
+    <string name="lbl_target_url">Latency &amp; Health Check Target:</string>
+    <string name="lbl_ips_per_prefix">IPs per Prefix:</string>
+    <string name="lbl_max_ips">Max Total Candidate IPs:</string>
+    <string name="lbl_concurrency">Concurrent Worker Threads:</string>
+    <string name="lbl_timeout">Response Timeout:</string>
+    <string name="seconds_suffix">%1$.1fs</string>
+    <string name="custom_ips_label">Custom IPs or Subnets (one per line):</string>
+    <string name="custom_ips_placeholder">104.16.24.1\n172.64.0.0/24\n1.1.1.1</string>
+
+    <!-- Action Buttons -->
+    <string name="start_scan">Start IP Scan</string>
+    <string name="realdelay_btn">RealDelay Test (Xray)</string>
+    <string name="realdelay_testing">Testing RealDelay with Xray…</string>
+    <string name="realdelay_done">RealDelay test completed!</string>
+    <string name="th_realdelay">RealDelay (Proxy)</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="stop">Stop Scan</string>
+    <string name="clear">Clear</string>
+
+    <!-- Metrics Summary -->
+    <string name="lbl_stat_tested">Tested / Total</string>
+    <string name="lbl_stat_working">Clean IPs Found</string>
+    <string name="lbl_stat_speed">Scan Speed</string>
+    <string name="lbl_stat_ping">Best Google Ping</string>
+    <string name="ready_text">Ready to start scan</string>
+    <string name="scanning_text">Scanning in progress…</string>
+    <string name="paused_text">Scan paused</string>
+    <string name="finished_text">Scan completed</string>
+    <string name="unit_ips_per_sec">%1$.0f IP/s</string>
+    <string name="unit_ms">%1$.1f ms</string>
+
+    <!-- Results Table & Export -->
+    <string name="results_table_title">Working Clean IPs Sorted by Latency</string>
+    <string name="results_count">%1$d items</string>
+    <string name="search_placeholder">Filter IP or subnet…</string>
+    <string name="copy_all_ips">Copy IPs</string>
+    <string name="export">Export</string>
+    <string name="export_ips">📄 Clean IPs List (TXT)</string>
+    <string name="export_configs">🔗 Ready Config Links (TXT)</string>
+    <string name="export_report">📄 Scan Summary Report (TXT)</string>
+    <string name="export_csv">📊 Excel Table (CSV)</string>
+    <string name="export_json">💾 Full Structure (JSON)</string>
+    <string name="share">Share</string>
+    <string name="share_config">Share Config</string>
+    <string name="share_to_proxy">Send to Proxy App</string>
+    <string name="share_to_v2rayng">Send to v2rayNG</string>
+    <string name="share_to_nekobox">Send to NekoBox</string>
+    <string name="copy_ip">Copy IP</string>
+    <string name="copy_all_configs">Copy All Configs</string>
+    <string name="copied_all_configs">%1$d clean configs copied to clipboard!</string>
+    <string name="th_rank">#</string>
+    <string name="th_ip">IP Address</string>
+    <string name="th_prefix">Prefix / CIDR</string>
+    <string name="th_google">Google Ping (204) ↓</string>
+    <string name="th_tcp">TCP Latency</string>
+    <string name="th_tls">TLS Handshake</string>
+    <string name="th_status">Status</string>
+    <string name="th_actions">Actions</string>
+    <string name="no_results_title">Scan has not started yet</string>
+    <string name="no_results_desc">Enter your configuration and click \'Start IP Scan\' to begin.</string>
+    <string name="copied_ip">IP copied to clipboard!</string>
+    <string name="copied_config">Ready-to-use config copied!</string>
+    <string name="copied_all_ips">%1$d clean IPs copied to clipboard!</string>
+    <string name="retesting">Retesting IP…</string>
+    <string name="share_to_apps">Share to Proxy App</string>
+    <string name="share_all_configs">Share All Configs</string>
+    <string name="share_clean_config">CF Clean Config</string>
+    <string name="empty_export_error">No clean IPs found to export or copy.</string>
+    <string name="no_results_to_export">No clean IPs found yet! Please run a scan first.</string>
+    <string name="export_success">Exported successfully: %1$s</string>
+    <string name="export_failed">Failed to export: %1$s</string>
+    <string name="clipboard_payload_too_large">Payload too large for clipboard. Please use File Export.</string>
+</resources>

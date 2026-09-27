@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App & Branding -->
+    <string name="app_name">اسکنر آی‌پی کلادفلر</string>
+    <string name="scan_title">اسکنر آی‌پی‌های تمیز کلادفلر</string>
+    <string name="app_subtitle">اسکنر آی‌پی تمیز کلادفلر (HE BGP و RealDelay)</string>
+    <string name="switch_language">فارسی / English</string>
+    <string name="theme_toggle">تغییر تم</string>
+
+    <!-- Header & ASN Selection -->
+    <string name="asn_title">شماره خودگردان (ASN):</string>
+    <string name="btn_as13335">AS13335 (اصلی)</string>
+    <string name="btn_as209242">AS209242 (Inc)</string>
+    <string name="custom_asn_placeholder">ASN دلخواه (مثلاً 13335)</string>
+    <string name="fetch_bgp">بروزرسانی رنج‌ها</string>
+    <string name="bgp_prefix_badge">%1$d پیشوند لود شد</string>
+    <string name="bgp_fetching">در حال دریافت پیشوندها…</string>
+
+    <!-- Config Input Section -->
+    <string name="config_input_title">کانفیگ پروکسی / دامنه</string>
+    <string name="config_placeholder">کانفیگ خود را اینجا پیست کنید (vless://, vmess://, trojan://, ss:// یا دامنه/ورکر)\nمثال:\nvless://uuid@myworker.workers.dev:443?type=ws&amp;security=tls&amp;path=%2F#MyWorker</string>
+    <string name="protocol_badge">پروتکل: %1$s</string>
+    <string name="tls_badge_on">TLS: فعال</string>
+    <string name="tls_badge_off">TLS: غیرفعال</string>
+    <string name="lbl_sni">SNI / دامنه:</string>
+    <string name="lbl_port">پورت:</string>
+    <string name="lbl_transport">انتقال:</string>
+    <string name="lbl_path">مسیر:</string>
+
+    <!-- Scan Parameters -->
+    <string name="scan_params_title">تنظیمات اسکن و تست</string>
+    <string name="lbl_ip_version">نسخه پروتکل IP (IPv4 / IPv6):</string>
+    <string name="opt_ver_ipv4">IPv4</string>
+    <string name="opt_ver_ipv6">IPv6</string>
+    <string name="opt_ver_both">هر دو (Dual-Stack)</string>
+    <string name="lbl_sample_mode">استراتژی نمونه‌برداری از ساب‌نت‌ها:</string>
+    <string name="opt_random">🎲 نمونه تصادفی در هر پیشوند (پیشنهادی)</string>
+    <string name="opt_gateway">🎯 آی‌پی‌های لبه (.1, .10, .50, .100, .200)</string>
+    <string name="opt_step">⚡ گام‌های متوالی در ساب‌نت (Step Stride)</string>
+    <string name="opt_custom">📋 لیست دستی آی‌پی‌ها</string>
+    <string name="lbl_target_url">مقصد تست سلامت و Latency:</string>
+    <string name="lbl_ips_per_prefix">تعداد آی‌پی از هر پیشوند:</string>
+    <string name="lbl_max_ips">حداکثر کل آی‌پی‌ها:</string>
+    <string name="lbl_concurrency">تعداد تردهای همزمان (Concurrency):</string>
+    <string name="lbl_timeout">مهلت پاسخ (Timeout):</string>
+    <string name="seconds_suffix">%1$.1f ثانیه</string>
+    <string name="custom_ips_label">لیست آی‌پی‌ها یا ساب‌نت‌های دلخواه (هر خط یک مورد):</string>
+    <string name="custom_ips_placeholder">104.16.24.1\n172.64.0.0/24\n1.1.1.1</string>
+
+    <!-- Action Buttons -->
+    <string name="start_scan">شروع اسکن آی‌پی‌ها</string>
+    <string name="realdelay_btn">تست تاخیر واقعی (RealDelay)</string>
+    <string name="realdelay_testing">در حال تست تاخیر واقعی (RealDelay)…</string>
+    <string name="realdelay_done">تست تاخیر واقعی به پایان رسید!</string>
+    <string name="th_realdelay">تاخیر واقعی (RealDelay)</string>
+    <string name="pause">توقف موقت</string>
+    <string name="resume">ادامه</string>
+    <string name="stop">لغو اسکن</string>
+    <string name="clear">پاکسازی</string>
+
+    <!-- Metrics Summary -->
+    <string name="lbl_stat_tested">تست شده / کل</string>
+    <string name="lbl_stat_working">آی‌پی سالم پیدا شده</string>
+    <string name="lbl_stat_speed">سرعت اسکن</string>
+    <string name="lbl_stat_ping">بهترین پینگ گوگل</string>
+    <string name="ready_text">آماده شروع اسکن</string>
+    <string name="scanning_text">در حال اسکن…</string>
+    <string name="paused_text">اسکن متوقف شد</string>
+    <string name="finished_text">اسکن پایان یافت</string>
+    <string name="unit_ips_per_sec">%1$.0f IP/s</string>
+    <string name="unit_ms">%1$.1f ms</string>
+
+    <!-- Results Table & Export -->
+    <string name="results_table_title">آی‌پی‌های سالم و مرتب‌شده بر اساس تاخیر</string>
+    <string name="results_count">%1$d مورد</string>
+    <string name="search_placeholder">فیلتر آی‌پی یا ساب‌نت…</string>
+    <string name="copy_all_ips">کپی آی‌پی‌ها</string>
+    <string name="export">خروجی</string>
+    <string name="export_ips">📄 لیست آی‌پی‌ها (TXT)</string>
+    <string name="export_configs">🔗 لینک‌های آماده کانفیگ (TXT)</string>
+    <string name="export_report">📄 گزارش خلاصه اسکن (TXT)</string>
+    <string name="export_csv">📊 جدول اکسل (CSV)</string>
+    <string name="export_json">💾 ساختار کامل (JSON)</string>
+    <string name="share">اشتراک‌گذاری</string>
+    <string name="share_config">اشتراک کانفیگ</string>
+    <string name="share_to_proxy">ارسال به اپلیکیشن فیلترشکن</string>
+    <string name="share_to_v2rayng">ارسال به v2rayNG</string>
+    <string name="share_to_nekobox">ارسال به NekoBox</string>
+    <string name="copy_ip">کپی آی‌پی</string>
+    <string name="copy_all_configs">کپی تمامی کانفیگ‌ها</string>
+    <string name="copied_all_configs">%1$d کانفیگ تمیز در حافظه کپی شد!</string>
+    <string name="th_rank">#</string>
+    <string name="th_ip">آدرس آی‌پی</string>
+    <string name="th_prefix">پیشوند / CIDR</string>
+    <string name="th_google">پینگ گوگل (204) ↓</string>
+    <string name="th_tcp">TCP Latency</string>
+    <string name="th_tls">TLS Handshake</string>
+    <string name="th_status">وضعیت</string>
+    <string name="th_actions">عملیات</string>
+    <string name="no_results_title">هنوز اسکن شروع نشده است</string>
+    <string name="no_results_desc">کانفیگ خود را وارد کرده و دکمه «شروع اسکن آی‌پی‌ها» را بزنید.</string>
+    <string name="copied_ip">آی‌پی کپی شد!</string>
+    <string name="copied_config">کانفیگ با آی‌پی جدید کپی شد!</string>
+    <string name="copied_all_ips">%1$d آی‌پی سالم به کلیپ‌بورد کپی شد!</string>
+    <string name="retesting">در حال تست مجدد…</string>
+    <string name="share_to_apps">ارسال به اپلیکیشن پروکسی</string>
+    <string name="share_all_configs">ارسال همه کانفیگ‌ها</string>
+    <string name="share_clean_config">کانفیگ تمیز کلادفلر</string>
+    <string name="empty_export_error">هیچ آی‌پی سالمی برای خروجی یا کپی وجود ندارد.</string>
+    <string name="no_results_to_export">هنوز هیچ آی‌پی تمیزی یافت نشده است! لطفاً ابتدا اسکن کنید.</string>
+    <string name="export_success">خروجی با موفقیت ذخیره شد: %1$s</string>
+    <string name="export_failed">خطا در استخراج فایل: %1$s</string>
+    <string name="clipboard_payload_too_large">حجم داده برای کپی بیش از حد مجاز است. لطفاً از خروجی فایل استفاده کنید.</string>
+</resources>

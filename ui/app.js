@@ -7,6 +7,7 @@
 const state = {
   lang: 'fa', // 'fa' or 'en'
   currentAsn: '13335',
+  ipVersion: 'ipv4', // 'ipv4', 'ipv6', 'both'
   totalPrefixes: 0,
   isRunning: false,
   isPaused: false,
@@ -34,6 +35,10 @@ const i18n = {
     transportLabel: 'انتقال:',
     pathLabel: 'مسیر:',
     scanParamsTitle: 'تنظیمات اسکن و تست',
+    ipVersionLabel: 'نسخه پروتکل IP (IPv4 / IPv6):',
+    optVerIpv4: 'IPv4',
+    optVerIpv6: 'IPv6',
+    optVerBoth: 'هر دو (Dual-Stack)',
     sampleModeLabel: 'استراتژی نمونه‌برداری از ساب‌نت‌ها:',
     optRandom: '🎲 نمونه تصادفی در هر پیشوند (پیشنهادی)',
     optGateway: '🎯 آی‌پی‌های لبه (.1, .10, .50, .100, .200)',
@@ -100,6 +105,10 @@ const i18n = {
     transportLabel: 'Transport:',
     pathLabel: 'Path:',
     scanParamsTitle: 'Scan & Latency Settings',
+    ipVersionLabel: 'IP Protocol Version (IPv4 / IPv6):',
+    optVerIpv4: 'IPv4',
+    optVerIpv6: 'IPv6',
+    optVerBoth: 'Both (Dual-Stack)',
     sampleModeLabel: 'Subnet Sampling Strategy:',
     optRandom: '🎲 Random IPs per Prefix (Recommended)',
     optGateway: '🎯 Edge Gateway IPs (.1, .10, .50, .100, .200)',
@@ -182,6 +191,10 @@ const el = {
   valPath: document.getElementById('val-path'),
 
   titleScanParams: document.getElementById('title-scan-params'),
+  lblIpVersion: document.getElementById('lbl-ip-version'),
+  btnVerIpv4: document.getElementById('btn-ver-ipv4'),
+  btnVerIpv6: document.getElementById('btn-ver-ipv6'),
+  btnVerBoth: document.getElementById('btn-ver-both'),
   lblSampleMode: document.getElementById('lbl-sample-mode'),
   selectSampleMode: document.getElementById('select-sample-mode'),
   optRandom: document.getElementById('opt-random'),
@@ -293,6 +306,10 @@ function setLanguage(lang) {
   el.lblTransport.innerText = t.transportLabel;
   el.lblPath.innerText = t.pathLabel;
   el.titleScanParams.innerText = t.scanParamsTitle;
+  if (el.lblIpVersion) el.lblIpVersion.innerText = t.ipVersionLabel;
+  if (el.btnVerIpv4) el.btnVerIpv4.innerText = t.optVerIpv4;
+  if (el.btnVerIpv6) el.btnVerIpv6.innerText = t.optVerIpv6;
+  if (el.btnVerBoth) el.btnVerBoth.innerText = t.optVerBoth;
   el.lblSampleMode.innerText = t.sampleModeLabel;
   el.optRandom.innerText = t.optRandom;
   el.optGateway.innerText = t.optGateway;
@@ -664,6 +681,15 @@ function setupEvents() {
     el.valTimeout.innerText = `${e.target.value} ${i18n[state.lang].seconds}`;
   });
 
+  // IP version toggle buttons
+  document.querySelectorAll('.ip-ver-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ip-ver-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.ipVersion = btn.getAttribute('data-version') || 'ipv4';
+    });
+  });
+
   // Sample mode select
   el.selectSampleMode.addEventListener('change', (e) => {
     if (e.target.value === 'custom') {
@@ -697,6 +723,7 @@ function setupEvents() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           asn: state.currentAsn,
+          ip_version: state.ipVersion,
           config: rawConfig,
           sample_mode: sampleMode,
           ips_per_prefix: ipsPerPrefix,

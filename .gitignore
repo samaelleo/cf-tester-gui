@@ -35,3 +35,15 @@ bin/geosite.dat
 .idea/
 .vscode/
 *.swp
+
+# Android & Gradle
+.gradle/
+**/build/
+local.properties
+android/local.properties
+*.apk
+*.aab
+
+# Internal / Agent & Python Cache
+.agents/
+.cache/

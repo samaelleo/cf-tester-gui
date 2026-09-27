@@ -360,8 +360,10 @@ class TesterEngine:
         3. WebSocket Handshake / VLESS Tunnel Google 204 Connectivity Check
         """
         port = config.port or 443
+        clean_ip = ip.strip("[]")
         sni = config.get_sni_or_host()
-        host_header = config.get_host_header()
+        raw_host = config.get_host_header()
+        host_header = f"[{raw_host.strip('[]')}]" if ":" in raw_host else raw_host
         use_tls = config.security in ["tls", "reality"]
 
         t_start = time.perf_counter()
@@ -378,7 +380,7 @@ class TesterEngine:
         try:
             # Stage 1: TCP Connect
             t0 = time.perf_counter()
-            conn_coro = asyncio.open_connection(ip, port)
+            conn_coro = asyncio.open_connection(clean_ip, port)
             reader, writer = await asyncio.wait_for(conn_coro, timeout=timeout_sec)
             tcp_ms = round((time.perf_counter() - t0) * 1000, 1)
 
@@ -392,8 +394,9 @@ class TesterEngine:
                 writer.close()
                 await writer.wait_closed()
 
+                tls_sni = sni if not ConfigParser._is_ip(sni) else None
                 tls_coro = asyncio.open_connection(
-                    ip, port, ssl=ssl_ctx, server_hostname=sni
+                    clean_ip, port, ssl=ssl_ctx, server_hostname=tls_sni
                 )
                 reader, writer = await asyncio.wait_for(tls_coro, timeout=timeout_sec)
                 tls_ms = round((time.perf_counter() - t1) * 1000, 1)

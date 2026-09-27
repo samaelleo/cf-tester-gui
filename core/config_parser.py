@@ -253,29 +253,46 @@ class ConfigParser:
         try:
             parsed = urllib.parse.urlparse(link)
             tag = urllib.parse.unquote(parsed.fragment or "SS-Node")
-            address = parsed.hostname or ""
-            port = parsed.port or 443
-            password = parsed.username or ""
+            address = ""
+            port = 443
+            password = ""
 
-            if not address and parsed.netloc:
-                netloc_clean = parsed.netloc.split("@")
-                if len(netloc_clean) == 2:
-                    userinfo_b64, hostport = netloc_clean
-                    hp_parts = hostport.split(":")
-                    address = hp_parts[0]
-                    port = int(hp_parts[1]) if len(hp_parts) > 1 else 443
+            if "@" in parsed.netloc:
+                if parsed.username and parsed.password:
+                    password = f"{parsed.username}:{parsed.password}"
+                elif parsed.username:
+                    password = parsed.username
                 else:
-                    b64_str = parsed.netloc
-                    padding = len(b64_str) % 4
-                    if padding:
-                        b64_str += "=" * (4 - padding)
-                    decoded = base64.b64decode(b64_str).decode("utf-8", errors="ignore")
+                    userinfo, _ = parsed.netloc.split("@", 1)
+                    password = urllib.parse.unquote(userinfo)
+                address = parsed.hostname or ""
+                port = parsed.port or 443
+            else:
+                # Legacy base64: base64(method:password@host:port)
+                b64_str = parsed.netloc
+                pad = len(b64_str) % 4
+                if pad:
+                    b64_str += "=" * (4 - pad)
+                try:
+                    decoded = base64.urlsafe_b64decode(b64_str).decode("utf-8", errors="ignore")
                     if "@" in decoded:
-                        user_info, hostport = decoded.split("@", 1)
+                        user_info, hostport = decoded.rsplit("@", 1)
                         password = user_info
-                        hp_parts = hostport.split(":")
-                        address = hp_parts[0]
-                        port = int(hp_parts[1]) if len(hp_parts) > 1 else 443
+                        if hostport.startswith("[") and "]:" in hostport:
+                            hp_parts = hostport[1:].split("]:", 1)
+                            address = hp_parts[0]
+                            port = int(hp_parts[1]) if len(hp_parts) > 1 and hp_parts[1].isdigit() else 443
+                        elif ":" in hostport:
+                            hp_parts = hostport.rsplit(":", 1)
+                            address = hp_parts[0]
+                            port = int(hp_parts[1]) if len(hp_parts) > 1 and hp_parts[1].isdigit() else 443
+                        else:
+                            address = hostport
+                            port = 443
+                except Exception:
+                    address = parsed.hostname or ""
+                    port = parsed.port or 443
+                    password = parsed.username or ""
 
             return ParsedConfig(
                 protocol="ss",
@@ -298,15 +315,32 @@ class ConfigParser:
         host = text
         path = "/"
 
-        if ":" in text and not text.startswith("["):
-            parts = text.split(":", 1)
+        if text.startswith("[") and "]:" in text:
+            parts = text[1:].split("]:", 1)
             host = parts[0]
             try:
                 port = int(parts[1].split("/")[0])
             except ValueError:
                 port = 443
-
-        if "/" in host:
+            if "/" in parts[1]:
+                path = "/" + parts[1].split("/", 1)[1]
+        elif ":" in text and not text.startswith("["):
+            if text.count(":") >= 2:
+                # Bare IPv6 without brackets
+                host = text.split("/")[0]
+                port = 443
+                if "/" in text:
+                    path = "/" + text.split("/", 1)[1]
+            else:
+                parts = text.split(":", 1)
+                host = parts[0]
+                try:
+                    port = int(parts[1].split("/")[0])
+                except ValueError:
+                    port = 443
+                if "/" in parts[1]:
+                    path = "/" + parts[1].split("/", 1)[1]
+        elif "/" in host:
             h_parts = host.split("/", 1)
             host = h_parts[0]
             path = "/" + h_parts[1]
@@ -329,7 +363,11 @@ class ConfigParser:
         parsed: ParsedConfig, clean_ip: str, remark_suffix: str = ""
     ) -> str:
         orig_domain = parsed.get_sni_or_host()
-        tag = f"{parsed.tag} | CF:{clean_ip}"
+        raw_ip = clean_ip.strip("[]")
+        is_ipv6 = ":" in raw_ip
+        formatted_uri_ip = f"[{raw_ip}]" if is_ipv6 else raw_ip
+
+        tag = f"{parsed.tag} | CF:{raw_ip}"
         if remark_suffix:
             tag += f" [{remark_suffix}]"
 
@@ -353,13 +391,13 @@ class ConfigParser:
 
             query_str = urllib.parse.urlencode(params)
             tag_encoded = urllib.parse.quote(tag)
-            return f"vless://{parsed.uuid}@{clean_ip}:{parsed.port}?{query_str}#{tag_encoded}"
+            return f"vless://{parsed.uuid}@{formatted_uri_ip}:{parsed.port}?{query_str}#{tag_encoded}"
 
         elif parsed.protocol == "vmess":
             data = dict(parsed.extra_params)
             data["v"] = "2"
             data["ps"] = tag
-            data["add"] = clean_ip
+            data["add"] = raw_ip
             data["port"] = str(parsed.port)
             data["id"] = parsed.uuid
             data["net"] = parsed.transport
@@ -387,14 +425,14 @@ class ConfigParser:
 
             query_str = urllib.parse.urlencode(params)
             tag_encoded = urllib.parse.quote(tag)
-            return f"trojan://{parsed.uuid}@{clean_ip}:{parsed.port}?{query_str}#{tag_encoded}"
+            return f"trojan://{parsed.uuid}@{formatted_uri_ip}:{parsed.port}?{query_str}#{tag_encoded}"
 
         elif parsed.protocol == "ss":
             tag_encoded = urllib.parse.quote(tag)
-            return f"ss://{parsed.uuid}@{clean_ip}:{parsed.port}#{tag_encoded}"
+            return f"ss://{parsed.uuid}@{formatted_uri_ip}:{parsed.port}#{tag_encoded}"
 
         else:
-            return f"{clean_ip}:{parsed.port} (Host: {orig_domain})"
+            return f"{formatted_uri_ip}:{parsed.port} (Host: {orig_domain})"
 
     @staticmethod
     def _is_ip(address: str) -> bool:

@@ -1079,3 +1079,39 @@ html[dir="rtl"] .toast-container {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* IP Version Selector Toggle Group */
+.ip-version-toggle-group {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-glass);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  gap: 4px;
+  width: 100%;
+}
+
+.ip-ver-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.ip-ver-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ip-ver-btn.active {
+  background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}

@@ -132,6 +132,7 @@ def start_scan():
 
     data = request.get_json(silent=True) or {}
     asn = data.get("asn", "13335")
+    ip_version = str(data.get("ip_version", "ipv4")).lower().strip()
     sample_mode = data.get("sample_mode", "random")
     ips_per_prefix = int(data.get("ips_per_prefix", 2))
     max_total_ips = int(data.get("max_total_ips", 2000))
@@ -152,16 +153,54 @@ def start_scan():
     if not current_prefixes_cache or current_prefixes_cache.get("asn") != f"AS{bgp_fetcher.clean_asn(asn)}":
         current_prefixes_cache = bgp_fetcher.fetch_prefixes_from_he(asn)
 
-    prefixes = current_prefixes_cache.get("ipv4", [])
+    v4_prefixes = current_prefixes_cache.get("ipv4", [])
+    v6_prefixes = current_prefixes_cache.get("ipv6", [])
 
     # Generate candidate IPs
-    candidate_ips = bgp_fetcher.generate_candidate_ips(
-        prefixes=prefixes,
-        sample_mode=sample_mode,
-        ips_per_prefix=ips_per_prefix,
-        max_total_ips=max_total_ips,
-        custom_ip_list=custom_ips if custom_ips else None
-    )
+    if custom_ips:
+        candidate_ips = bgp_fetcher.generate_candidate_ips(
+            prefixes=[],
+            sample_mode=sample_mode,
+            ips_per_prefix=ips_per_prefix,
+            max_total_ips=max_total_ips,
+            custom_ip_list=custom_ips
+        )
+    elif ip_version == "ipv6":
+        candidate_ips = bgp_fetcher.generate_candidate_ips(
+            prefixes=v6_prefixes,
+            sample_mode=sample_mode,
+            ips_per_prefix=ips_per_prefix,
+            max_total_ips=max_total_ips
+        )
+    elif ip_version == "both":
+        half_max = max(1, max_total_ips // 2)
+        cand_v4 = bgp_fetcher.generate_candidate_ips(
+            prefixes=v4_prefixes,
+            sample_mode=sample_mode,
+            ips_per_prefix=ips_per_prefix,
+            max_total_ips=half_max
+        )
+        cand_v6 = bgp_fetcher.generate_candidate_ips(
+            prefixes=v6_prefixes,
+            sample_mode=sample_mode,
+            ips_per_prefix=ips_per_prefix,
+            max_total_ips=half_max
+        )
+        # Interleave IPv4 and IPv6 candidate IPs
+        candidate_ips = []
+        for i in range(max(len(cand_v4), len(cand_v6))):
+            if i < len(cand_v4):
+                candidate_ips.append(cand_v4[i])
+            if i < len(cand_v6):
+                candidate_ips.append(cand_v6[i])
+        candidate_ips = candidate_ips[:max_total_ips]
+    else:  # default "ipv4"
+        candidate_ips = bgp_fetcher.generate_candidate_ips(
+            prefixes=v4_prefixes,
+            sample_mode=sample_mode,
+            ips_per_prefix=ips_per_prefix,
+            max_total_ips=max_total_ips
+        )
 
     if not candidate_ips:
         return jsonify({"status": "error", "message": "No candidate IPs generated"}), 400

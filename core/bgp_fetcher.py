@@ -32,6 +32,16 @@ FALLBACK_CLOUDFLARE_V4 = [
     "131.0.72.0/22",
 ]
 
+FALLBACK_CLOUDFLARE_V6 = [
+    "2400:cb00::/32",
+    "2606:4700::/32",
+    "2803:f800::/32",
+    "2405:b500::/32",
+    "2405:8100::/32",
+    "2a06:98c0::/29",
+    "2c0f:f248::/32",
+]
+
 
 class BGPFetcher:
     def __init__(self, cache_timeout: int = 3600):
@@ -102,11 +112,15 @@ class BGPFetcher:
             "status": "fallback",
             "asn": f"AS{clean_as}",
             "ipv4": FALLBACK_CLOUDFLARE_V4,
-            "ipv6": [],
+            "ipv6": FALLBACK_CLOUDFLARE_V6,
             "total_v4": len(FALLBACK_CLOUDFLARE_V4),
-            "total_v6": 0,
+            "total_v6": len(FALLBACK_CLOUDFLARE_V6),
             "source": "Local Fallback List",
         }
+
+    def get_cloudflare_prefixes(self, asn: str = "13335") -> Dict[str, Any]:
+        """Convenience alias for fetch_prefixes_from_he."""
+        return self.fetch_prefixes_from_he(asn)
 
     def generate_candidate_ips(
         self,
@@ -136,8 +150,16 @@ class BGPFetcher:
                 try:
                     if "/" in ip_str:
                         net = ipaddress.ip_network(ip_str, strict=False)
-                        for h in list(net.hosts())[:ips_per_prefix]:
-                            clean_custom.append({"ip": str(h), "prefix": ip_str})
+                        if net.version == 6:
+                            if int(net.num_addresses) <= 1:
+                                clean_custom.append({"ip": str(net.network_address), "prefix": ip_str})
+                            else:
+                                count = min(ips_per_prefix, max(1, int(net.num_addresses) - 1))
+                                for i in range(1, count + 1):
+                                    clean_custom.append({"ip": str(net.network_address + i), "prefix": ip_str})
+                        else:
+                            for h in list(net.hosts())[:ips_per_prefix]:
+                                clean_custom.append({"ip": str(h), "prefix": ip_str})
                     else:
                         ipaddress.ip_address(ip_str)
                         clean_custom.append({"ip": ip_str, "prefix": "Manual"})
@@ -215,6 +237,67 @@ class BGPFetcher:
                     else:  # all
                         for host in net.hosts():
                             ip_s = str(host)
+                            if ip_s not in seen_ips:
+                                seen_ips.add(ip_s)
+                                generated.append({"ip": ip_s, "prefix": prefix})
+                            if len(generated) >= max_total_ips:
+                                break
+
+                # Handle IPv6
+                else:
+                    net_v6 = ipaddress.IPv6Network(prefix, strict=False)
+                    net_int = int(net_v6.network_address)
+                    num_addresses = int(net_v6.num_addresses)
+
+                    if num_addresses <= 1:
+                        ip_s = str(net_v6.network_address)
+                        if ip_s not in seen_ips:
+                            seen_ips.add(ip_s)
+                            generated.append({"ip": ip_s, "prefix": prefix})
+                        continue
+
+                    # Bounded sampling range to prevent memory exhaustion / OverflowError and target Cloudflare edge anycast space
+                    max_offset = min(num_addresses - 1, 0x10000)
+
+                    if sample_mode == "gateway_hosts":
+                        # Standard edge gateway offsets (::1, ::2, ::10, ::20, ::50, ::100, ::200)
+                        offsets = [1, 2, 0x10, 0x20, 0x50, 0x100, 0x200]
+                        added_for_prefix = 0
+                        for off in offsets:
+                            if off < num_addresses:
+                                ip_s = str(ipaddress.IPv6Address(net_int + off))
+                                if ip_s not in seen_ips:
+                                    seen_ips.add(ip_s)
+                                    generated.append({"ip": ip_s, "prefix": prefix})
+                                    added_for_prefix += 1
+                                    if added_for_prefix >= ips_per_prefix:
+                                        break
+
+                    elif sample_mode == "random":
+                        count = min(ips_per_prefix, max_offset)
+                        if count <= 0:
+                            count = 1
+                        sampled_offsets = random.sample(range(1, max_offset + 1), count)
+                        for off in sampled_offsets:
+                            ip_s = str(ipaddress.IPv6Address(net_int + off))
+                            if ip_s not in seen_ips:
+                                seen_ips.add(ip_s)
+                                generated.append({"ip": ip_s, "prefix": prefix})
+
+                    elif sample_mode == "step":
+                        step_stride = max(1, max_offset // max(1, ips_per_prefix))
+                        for i in range(ips_per_prefix):
+                            off = 1 + (i * step_stride)
+                            if off < num_addresses:
+                                ip_s = str(ipaddress.IPv6Address(net_int + off))
+                                if ip_s not in seen_ips:
+                                    seen_ips.add(ip_s)
+                                    generated.append({"ip": ip_s, "prefix": prefix})
+
+                    else:  # all / sequential
+                        count = min(ips_per_prefix, max_offset)
+                        for i in range(1, count + 1):
+                            ip_s = str(ipaddress.IPv6Address(net_int + i))
                             if ip_s not in seen_ips:
                                 seen_ips.add(ip_s)
                                 generated.append({"ip": ip_s, "prefix": prefix})
