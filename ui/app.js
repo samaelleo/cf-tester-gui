@@ -356,26 +356,49 @@ function setLanguage(lang) {
 }
 
 // BGP Prefix fetcher
-async function fetchBgpPrefixes(asn) {
-  el.txtFetchBgp.innerText = '...';
-  el.bgpPrefixBadge.innerText = 'Fetching BGP...';
+async function fetchBgpPrefixes(asn, force = false) {
+  const icon = el.btnFetchBgp ? el.btnFetchBgp.querySelector('svg') : null;
+  if (icon) icon.classList.add('spin');
+  if (el.btnFetchBgp) el.btnFetchBgp.disabled = true;
+  if (el.txtFetchBgp) el.txtFetchBgp.innerText = state.lang === 'fa' ? 'در حال دریافت...' : 'Fetching...';
+  if (el.bgpPrefixBadge) el.bgpPrefixBadge.innerText = state.lang === 'fa' ? 'در حال استعلام BGP...' : 'Fetching BGP...';
+
   try {
     const res = await fetch('/api/fetch-prefixes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ asn })
+      body: JSON.stringify({ asn, force })
     });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
     const data = await res.json();
     if (data.status === 'success' && data.data) {
       state.totalPrefixes = (data.data.total_v4 || 0) + (data.data.total_v6 || 0);
-      el.bgpPrefixBadge.innerText = i18n[state.lang].prefixesLoaded(state.totalPrefixes);
-      showToast(`BGP prefixes loaded for ${data.data.asn}: ${data.data.total_v4} IPv4 ranges`, 'success');
+      if (el.bgpPrefixBadge) {
+        el.bgpPrefixBadge.innerText = i18n[state.lang].prefixesLoaded(state.totalPrefixes);
+      }
+      const source = data.data.source || 'BGP API';
+      const msg = state.lang === 'fa'
+        ? `رنج‌های ${data.data.asn} بروزرسانی شد: ${data.data.total_v4.toLocaleString('fa-IR')} رنج IPv4 و ${data.data.total_v6.toLocaleString('fa-IR')} رنج IPv6 (${source})`
+        : `BGP prefixes refreshed for ${data.data.asn}: ${data.data.total_v4} IPv4 & ${data.data.total_v6} IPv6 ranges (${source})`;
+      showToast(msg, 'success');
+    } else {
+      throw new Error(data.message || 'Unknown response');
     }
   } catch (err) {
     console.error('Failed to fetch BGP prefixes:', err);
-    el.bgpPrefixBadge.innerText = 'Fallback CIDR';
+    if (el.bgpPrefixBadge) {
+      el.bgpPrefixBadge.innerText = state.lang === 'fa' ? 'خطا در دریافت پیشوندها' : 'Fallback CIDR';
+    }
+    const errMsg = state.lang === 'fa'
+      ? `خطا در بروزرسانی رنج‌ها: ${err.message}`
+      : `Failed to fetch BGP prefixes: ${err.message}`;
+    showToast(errMsg, 'error');
   } finally {
-    el.txtFetchBgp.innerText = i18n[state.lang].fetchBgp;
+    if (icon) icon.classList.remove('spin');
+    if (el.btnFetchBgp) el.btnFetchBgp.disabled = false;
+    if (el.txtFetchBgp) el.txtFetchBgp.innerText = i18n[state.lang].fetchBgp;
   }
 }
 
@@ -650,9 +673,30 @@ function setupEvents() {
   });
 
   el.btnFetchBgp.addEventListener('click', () => {
-    const asn = el.customAsnInput.value.trim() || '13335';
-    state.currentAsn = asn;
-    fetchBgpPrefixes(asn);
+    const rawAsn = el.customAsnInput.value.trim() || '13335';
+    const cleanAsn = rawAsn.replace(/[^0-9]/g, '') || '13335';
+    state.currentAsn = cleanAsn;
+    el.customAsnInput.value = cleanAsn;
+
+    if (cleanAsn === '13335') {
+      el.btnAs13335.classList.add('active');
+      el.btnAs209242.classList.remove('active');
+    } else if (cleanAsn === '209242') {
+      el.btnAs209242.classList.add('active');
+      el.btnAs13335.classList.remove('active');
+    } else {
+      el.btnAs13335.classList.remove('active');
+      el.btnAs209242.classList.remove('active');
+    }
+
+    fetchBgpPrefixes(cleanAsn, true);
+  });
+
+  el.customAsnInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      el.btnFetchBgp.click();
+    }
   });
 
   // Language toggle
@@ -877,6 +921,9 @@ function setupEvents() {
     const retestBtn = e.target.closest('.btn-retest');
     if (retestBtn) {
       const ip = retestBtn.getAttribute('data-ip');
+      const icon = retestBtn.querySelector('svg');
+      if (icon) icon.classList.add('spin');
+      retestBtn.disabled = true;
       showToast(`${i18n[state.lang].retesting} ${ip}`, 'info');
       try {
         const res = await fetch('/api/test-single', {
@@ -884,13 +931,19 @@ function setupEvents() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ip, config: el.configInput.value.trim() })
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.status === 'success' && data.result) {
           addWorkingResult(data.result);
           showToast(`Retest ${ip}: ${data.result.google_status} (${data.result.google_latency_ms}ms)`, 'success');
+        } else {
+          showToast(`Retest failed: ${data.message || 'Unknown error'}`, 'error');
         }
       } catch (err) {
-        showToast(`Retest failed: ${err}`, 'error');
+        showToast(`Retest failed: ${err.message}`, 'error');
+      } finally {
+        if (icon) icon.classList.remove('spin');
+        retestBtn.disabled = false;
       }
     }
   });

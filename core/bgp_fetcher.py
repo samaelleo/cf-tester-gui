@@ -57,29 +57,39 @@ class BGPFetcher:
             asn = asn[2:]
         return "".join(c for c in asn if c.isdigit()) or "13335"
 
-    def fetch_prefixes_from_he(self, asn: str = "13335") -> Dict[str, List[str]]:
+    def fetch_prefixes_from_he(self, asn: str = "13335", force_refresh: bool = False) -> Dict[str, Any]:
         """
-        Fetch IP prefixes for an ASN from Hurricane Electric BGP Super-LG API.
-        Returns {'ipv4': [...], 'ipv6': [...], 'total': N, 'asn': clean_asn}
+        Fetch IP prefixes for an ASN from Hurricane Electric BGP Super-LG API,
+        with automatic fallback to RIPE Stat Announced Prefixes API, Cloudflare API,
+        and local cached fallback CIDRs.
+        Returns {'status': ..., 'asn': ..., 'ipv4': [...], 'ipv6': [...], 'total_v4': N, 'total_v6': N, 'source': ...}
         """
         clean_as = self.clean_asn(asn)
-        url = f"https://bgp.he.net/super-lg/report/api/v1/prefixes/originated/{clean_as}"
+
+        # Return cached if available and force_refresh is not requested
+        if not force_refresh and clean_as in self._cache:
+            return self._cache[clean_as]
+
+        if force_refresh and clean_as in self._cache:
+            self._cache.pop(clean_as, None)
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "application/json, text/plain, */*",
         }
 
+        # 1. Primary Source: Hurricane Electric BGP Super-LG API
         try:
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            url_he = f"https://bgp.he.net/super-lg/report/api/v1/prefixes/originated/{clean_as}"
+            req_he = urllib.request.Request(url_he, headers=headers)
+            with urllib.request.urlopen(req_he, timeout=6) as resp:
                 if resp.status == 200:
                     raw_data = resp.read().decode("utf-8")
                     data = json.loads(raw_data)
                     prefix_list = data.get("prefixes", [])
 
-                    ipv4_prefixes = []
-                    ipv6_prefixes = []
+                    ipv4_prefixes: List[str] = []
+                    ipv6_prefixes: List[str] = []
 
                     for item in prefix_list:
                         prefix = item.get("Prefix") if isinstance(item, dict) else str(item)
@@ -91,21 +101,87 @@ class BGPFetcher:
                         else:
                             ipv4_prefixes.append(prefix)
 
-                    result = {
-                        "status": "success",
-                        "asn": f"AS{clean_as}",
-                        "ipv4": ipv4_prefixes,
-                        "ipv6": ipv6_prefixes,
-                        "total_v4": len(ipv4_prefixes),
-                        "total_v6": len(ipv6_prefixes),
-                        "source": "Hurricane Electric BGP API",
-                    }
-                    self._cache[clean_as] = result
-                    return result
+                    if ipv4_prefixes or ipv6_prefixes:
+                        result = {
+                            "status": "success",
+                            "asn": f"AS{clean_as}",
+                            "ipv4": ipv4_prefixes,
+                            "ipv6": ipv6_prefixes,
+                            "total_v4": len(ipv4_prefixes),
+                            "total_v6": len(ipv6_prefixes),
+                            "source": "Hurricane Electric BGP API",
+                        }
+                        self._cache[clean_as] = result
+                        return result
         except Exception as e:
-            logger.warning(f"Failed to fetch prefixes from HE API for AS{clean_as}: {e}")
+            logger.warning(f"HE BGP API failed for AS{clean_as}: {e}. Trying RIPE Stat API...")
 
-        # Fallback to cached or predefined Cloudflare CIDRs if AS13335 or AS209242
+        # 2. Secondary Source: RIPE Stat Announced Prefixes API (very stable, unfiltered in Iran)
+        try:
+            url_ripe = f"https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS{clean_as}"
+            req_ripe = urllib.request.Request(url_ripe, headers=headers)
+            with urllib.request.urlopen(req_ripe, timeout=6) as resp:
+                if resp.status == 200:
+                    raw_data = resp.read().decode("utf-8")
+                    data = json.loads(raw_data)
+                    prefix_list = data.get("data", {}).get("prefixes", [])
+
+                    ipv4_prefixes = []
+                    ipv6_prefixes = []
+
+                    for item in prefix_list:
+                        prefix = item.get("prefix") if isinstance(item, dict) else str(item)
+                        if not prefix:
+                            continue
+                        prefix = prefix.strip()
+                        if ":" in prefix:
+                            ipv6_prefixes.append(prefix)
+                        else:
+                            ipv4_prefixes.append(prefix)
+
+                    if ipv4_prefixes or ipv6_prefixes:
+                        result = {
+                            "status": "success",
+                            "asn": f"AS{clean_as}",
+                            "ipv4": ipv4_prefixes,
+                            "ipv6": ipv6_prefixes,
+                            "total_v4": len(ipv4_prefixes),
+                            "total_v6": len(ipv6_prefixes),
+                            "source": "RIPE Stat BGP API",
+                        }
+                        self._cache[clean_as] = result
+                        return result
+        except Exception as e:
+            logger.warning(f"RIPE Stat API failed for AS{clean_as}: {e}")
+
+        # 3. Tertiary Source: Official Cloudflare API (for AS13335 and AS209242)
+        if clean_as in ("13335", "209242"):
+            try:
+                url_cf = "https://api.cloudflare.com/client/v4/ips"
+                req_cf = urllib.request.Request(url_cf, headers=headers)
+                with urllib.request.urlopen(req_cf, timeout=6) as resp:
+                    if resp.status == 200:
+                        raw_data = resp.read().decode("utf-8")
+                        data = json.loads(raw_data)
+                        cf_res = data.get("result", {})
+                        v4 = cf_res.get("ipv4_cidrs", [])
+                        v6 = cf_res.get("ipv6_cidrs", [])
+                        if v4 or v6:
+                            result = {
+                                "status": "success",
+                                "asn": f"AS{clean_as}",
+                                "ipv4": v4,
+                                "ipv6": v6,
+                                "total_v4": len(v4),
+                                "total_v6": len(v6),
+                                "source": "Cloudflare Official API",
+                            }
+                            self._cache[clean_as] = result
+                            return result
+            except Exception as e:
+                logger.warning(f"Cloudflare Official API failed: {e}")
+
+        # 4. Fallback to cached or predefined Cloudflare CIDRs
         if clean_as in self._cache:
             return self._cache[clean_as]
 
@@ -120,9 +196,9 @@ class BGPFetcher:
             "source": "Local Fallback List",
         }
 
-    def get_cloudflare_prefixes(self, asn: str = "13335") -> Dict[str, Any]:
+    def get_cloudflare_prefixes(self, asn: str = "13335", force_refresh: bool = False) -> Dict[str, Any]:
         """Convenience alias for fetch_prefixes_from_he."""
-        return self.fetch_prefixes_from_he(asn)
+        return self.fetch_prefixes_from_he(asn, force_refresh=force_refresh)
 
     def generate_candidate_ips(
         self,

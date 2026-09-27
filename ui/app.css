@@ -250,6 +250,26 @@ body {
   color: #fff;
 }
 
+.btn-icon-fetch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-icon-fetch svg.spin,
+.btn-icon-action svg.spin {
+  animation: spin-refresh 0.8s linear infinite;
+}
+
+@keyframes spin-refresh {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .header-utils {
   display: flex;
   align-items: center;

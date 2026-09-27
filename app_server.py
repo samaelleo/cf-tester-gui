@@ -80,14 +80,16 @@ def static_files(path):
 
 @app.route("/api/fetch-prefixes", methods=["POST"])
 def fetch_prefixes():
-    """Fetch prefixes from HE BGP API."""
+    """Fetch prefixes from HE BGP API or fallback sources."""
     data = request.get_json(silent=True) or {}
     asn = data.get("asn", "13335")
+    force = bool(data.get("force", True))
 
     try:
-        res = bgp_fetcher.fetch_prefixes_from_he(asn)
+        res = bgp_fetcher.fetch_prefixes_from_he(asn, force_refresh=force)
         global current_prefixes_cache
         current_prefixes_cache = res
+        logger.info(f"Prefixes loaded for {res.get('asn')}: {res.get('total_v4')} IPv4, {res.get('total_v6')} IPv6 from {res.get('source')}")
         return jsonify({
             "status": "success",
             "data": res
