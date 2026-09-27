@@ -176,13 +176,13 @@ jobs:
 
       - name: Build Android APK (Release & Debug)
         run: |
-          ./android/gradlew -p android assembleRelease || ./android/gradlew -p android assembleDebug
+          ./android/gradlew -p android assembleRelease
           mkdir -p dist
           if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            echo "Signed release APK successfully produced"
             cp android/app/build/outputs/apk/release/app-release.apk dist/cf-clean-ip-scanner-android-${{ needs.version-tag.outputs.version }}.apk
-          elif [ -f android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
-            cp android/app/build/outputs/apk/release/app-release-unsigned.apk dist/cf-clean-ip-scanner-android-${{ needs.version-tag.outputs.version }}.apk
           else
+            echo "Building signed debug APK fallback"
             ./android/gradlew -p android assembleDebug
             cp android/app/build/outputs/apk/debug/app-debug.apk dist/cf-clean-ip-scanner-android-${{ needs.version-tag.outputs.version }}.apk
           fi
