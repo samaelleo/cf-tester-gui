@@ -112,11 +112,12 @@ class MainViewModel(
     }
 
     fun onAsnSelected(asn: String) {
-        _uiState.update { it.copy(selectedAsn = asn) }
+        _uiState.update { it.copy(selectedAsn = asn, customAsn = asn) }
+        fetchBgpPrefixes()
     }
 
     fun onCustomAsnChanged(asn: String) {
-        _uiState.update { it.copy(customAsn = asn, selectedAsn = asn) }
+        _uiState.update { it.copy(customAsn = asn, selectedAsn = asn.trim()) }
     }
 
     fun onIpVersionChanged(version: IpVersion) {
