@@ -90,7 +90,7 @@ fun TopHeader(viewModel: MainViewModel, state: UiState) {
             }
         }
 
-        HorizontalDivider(color = DarkBorder.copy(alpha = 0.5f), thickness = 1.dp)
+        HorizontalDivider(color = GlassBorder.copy(alpha = 0.5f), thickness = 1.dp)
 
         // --- 2. ASN Section Title + Live Prefix Count Badge ---
         Row(
@@ -170,7 +170,7 @@ fun TopHeader(viewModel: MainViewModel, state: UiState) {
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isAs13335,
-                    borderColor = DarkBorder,
+                    borderColor = GlassBorder,
                     selectedBorderColor = AccentCyan
                 )
             )
@@ -198,7 +198,7 @@ fun TopHeader(viewModel: MainViewModel, state: UiState) {
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isAs209242,
-                    borderColor = DarkBorder,
+                    borderColor = GlassBorder,
                     selectedBorderColor = AccentCyan
                 )
             )
@@ -240,7 +240,7 @@ fun TopHeader(viewModel: MainViewModel, state: UiState) {
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AccentCyan,
-                    unfocusedBorderColor = if (state.selectedAsn !in listOf("13335", "209242")) AccentBlue else DarkBorder,
+                    unfocusedBorderColor = if (state.selectedAsn !in listOf("13335", "209242")) AccentBlue else GlassBorder,
                     focusedContainerColor = DarkBgSurface,
                     unfocusedContainerColor = DarkBgSurface,
                     cursorColor = AccentCyan

@@ -12,6 +12,7 @@ val DarkBgCardHover = Color(0xFF1E293B)  // var(--bg-surface-hover)
 val GlassBorder = Color(0x1FFFFFFF)       // 12% white opacity border
 val GlassBorderSubtle = Color(0x14FFFFFF) // 8% white opacity border
 val GlassBorderGlow = Color(0x593B82F6)   // var(--border-glass-glow)
+val DarkBorder = Color(0x1FFFFFFF)        // Dark border outline
 
 // Typography colors
 val TextPrimary = Color(0xFFF8FAFC)      // var(--text-primary)
